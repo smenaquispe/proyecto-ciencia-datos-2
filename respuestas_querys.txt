@@ -1,0 +1,640 @@
+└─────────────────┘
+statsbomb D SUMMARIZE events_fact;
+┌────────────────────┬─────────────┬─────────────────────────────┬──────────────────────┬───┬───────────────────┬──────────┬─────────────────┐
+│    column_name     │ column_type │             min             │         max          │ … │        q75        │  count   │ null_percentage │
+│      varchar       │   varchar   │           varchar           │       varchar        │ … │      varchar      │  int64   │  decimal(9,2)   │
+├────────────────────┼─────────────┼─────────────────────────────┼──────────────────────┼───┼───────────────────┼──────────┼─────────────────┤
+│ event_id           │ VARCHAR     │ 000000b5-8156-429d-9088-e6… │ fffffd42-a5ff-48dd-… │ … │ NULL              │ 12185465 │            0.00 │
+│ match_id           │ BIGINT      │ 7298                        │ 4020846              │ … │ 3883625           │ 12185465 │            0.00 │
+│ index              │ BIGINT      │ 1                           │ 5190                 │ … │ 2641              │ 12185465 │            0.00 │
+│ period             │ BIGINT      │ 1                           │ 5                    │ … │ 2                 │ 12185465 │            0.00 │
+│ timestamp          │ VARCHAR     │ 00:00:00.000                │ 00:59:46.105         │ … │ NULL              │ 12185465 │            0.00 │
+│ minute             │ BIGINT      │ 0                           │ 139                  │ … │ 68                │ 12185465 │            0.00 │
+│ second             │ BIGINT      │ 0                           │ 59                   │ … │ 44                │ 12185465 │            0.00 │
+│ event_type_id      │ BIGINT      │ 2                           │ 43                   │ … │ 42                │ 12185465 │            0.00 │
+│ event_type_name    │ VARCHAR     │ 50/50                       │ Tactical Shift       │ … │ NULL              │ 12185465 │            0.00 │
+│ team_id            │ BIGINT      │ 1                           │ 29167                │ … │ 788               │ 12185465 │            0.00 │
+│ team_name          │ VARCHAR     │ AC Ajaccio                  │ Zambia Women's       │ … │ NULL              │ 12185465 │            0.00 │
+│ possession         │ BIGINT      │ 1                           │ 302                  │ … │ 142               │ 12185465 │            0.00 │
+│ possession_team_id │ BIGINT      │ 1                           │ 29167                │ … │ 785               │ 12185465 │            0.00 │
+│ play_pattern_id    │ BIGINT      │ 1                           │ 9                    │ … │ 4                 │ 12185465 │            0.00 │
+│ play_pattern_name  │ VARCHAR     │ From Corner                 │ Regular Play         │ … │ NULL              │ 12185465 │            0.00 │
+│ duration           │ DOUBLE      │ -2660.414                   │ 1746.5853            │ … │ 1.712886332889473 │ 12185465 │           26.26 │
+│ x                  │ DOUBLE      │ 0.1                         │ 120.9                │ … │ 80.15955093770428 │ 12185465 │            0.75 │
+│ y                  │ DOUBLE      │ 0.1                         │ 80.8                 │ … │ 60.25781903568506 │ 12185465 │            0.75 │
+└────────────────────┴─────────────┴─────────────────────────────┴──────────────────────┴───┴───────────────────┴──────────┴─────────────────┘
+  18 rows                                        use .last to show entire result                                        12 columns (7 shown)
+statsbomb D SUMMARIZE matches_fact;
+┌────────────────────────┬─────────────┬─────────────────────┬─────────────────────┬───┬───────────────────────────┬───────┬─────────────────┐
+│      column_name       │ column_type │         min         │         max         │ … │            q75            │ count │ null_percentage │
+│        varchar         │   varchar   │       varchar       │       varchar       │ … │          varchar          │ int64 │  decimal(9,2)   │
+├────────────────────────┼─────────────┼─────────────────────┼─────────────────────┼───┼───────────────────────────┼───────┼─────────────────┤
+│ match_id               │ BIGINT      │ 7298                │ 4020846             │ … │ 3881886                   │  3464 │            0.00 │
+│ match_date             │ TIMESTAMP   │ 1958-06-24 00:00:00 │ 2025-07-27 00:00:00 │ … │ 2019-08-12 15:33:10.4875… │  3464 │            0.00 │
+│ kick_off               │ TIME        │ 00:00:00            │ 23:30:00            │ … │ 20:45:00                  │  3464 │            0.14 │
+│ match_datetime         │ TIMESTAMP   │ 1958-06-24 21:00:00 │ 2025-07-27 16:00:00 │ … │ 2019-08-30 20:39:42.4721… │  3464 │            0.14 │
+│ competition_id         │ BIGINT      │ 2                   │ 1470                │ … │ 37                        │  3464 │            0.00 │
+│ season_id              │ BIGINT      │ 1                   │ 315                 │ … │ 42                        │  3464 │            0.00 │
+│ home_team_id           │ BIGINT      │ 1                   │ 29167               │ … │ 840                       │  3464 │            0.00 │
+│ away_team_id           │ BIGINT      │ 1                   │ 29167               │ … │ 854                       │  3464 │            0.00 │
+│ stadium_id             │ DOUBLE      │ 2.0                 │ 1001990.0           │ … │ 4708.448051948051         │  3464 │            0.29 │
+│ home_score             │ BIGINT      │ 0                   │ 13                  │ … │ 2                         │  3464 │            0.00 │
+│ away_score             │ BIGINT      │ 0                   │ 9                   │ … │ 2                         │  3464 │            0.00 │
+│ match_week             │ BIGINT      │ 0                   │ 38                  │ … │ 25                        │  3464 │            0.00 │
+│ match_status           │ VARCHAR     │ available           │ available           │ … │ NULL                      │  3464 │            0.00 │
+│ match_status_360       │ VARCHAR     │ available           │ unscheduled         │ … │ NULL                      │  3464 │            0.00 │
+│ competition_stage_id   │ BIGINT      │ 1                   │ 158                 │ … │ 1                         │  3464 │            0.00 │
+│ competition_stage_name │ VARCHAR     │ 1st Group Stage     │ Semi-finals         │ … │ NULL                      │  3464 │            0.00 │
+└────────────────────────┴─────────────┴─────────────────────┴─────────────────────┴───┴───────────────────────────┴───────┴─────────────────┘
+  16 rows                                        use .last to show entire result                                        12 columns (7 shown)
+statsbomb D SUMMARIZE match_lineup_players;
+┌─────────────────┬─────────────┬─────────────────┬──────────────────┬───┬────────────────────┬────────┬─────────────────┐
+│   column_name   │ column_type │       min       │       max        │ … │        q75         │ count  │ null_percentage │
+│     varchar     │   varchar   │     varchar     │     varchar      │ … │      varchar       │ int64  │  decimal(9,2)   │
+├─────────────────┼─────────────┼─────────────────┼──────────────────┼───┼────────────────────┼────────┼─────────────────┤
+│ match_id        │ BIGINT      │ 7298            │ 4020846          │ … │ 3887655            │ 131901 │            0.00 │
+│ team_id         │ BIGINT      │ 1               │ 29167            │ … │ 860                │ 131901 │            0.00 │
+│ player_id       │ BIGINT      │ 2935            │ 482216           │ … │ 26098              │ 131901 │            0.00 │
+│ player_name     │ VARCHAR     │ Aaren D''Silva  │ Ștefan Târnovanu │ … │ NULL               │ 131901 │            0.00 │
+│ player_nickname │ VARCHAR     │ Aaron Boupendza │ Ștefan Radu      │ … │ NULL               │ 131901 │           61.94 │
+│ jersey_number   │ BIGINT      │ 0               │ 1000             │ … │ 22                 │ 131901 │            0.00 │
+│ country_id      │ DOUBLE      │ 3.0             │ 255.0            │ … │ 203.98367452288036 │ 131901 │            0.01 │
+│ country_name    │ VARCHAR     │ Albania         │ Zimbabwe         │ … │ NULL               │ 131901 │            0.01 │
+└─────────────────┴─────────────┴─────────────────┴──────────────────┴───┴────────────────────┴────────┴─────────────────┘
+  8 rows                              use .last to show entire result                               12 columns (7 shown)
+statsbomb D SUMMARIZE player_match_position_fact;
+┌──────────────┬─────────────┬────────────────────────┬───────────────────┬───────────────┬───┬─────────┬─────────┬────────┬─────────────────┐
+│ column_name  │ column_type │          min           │        max        │ approx_unique │ … │   q50   │   q75   │ count  │ null_percentage │
+│   varchar    │   varchar   │        varchar         │      varchar      │     int64     │ … │ varchar │ varchar │ int64  │  decimal(9,2)   │
+├──────────────┼─────────────┼────────────────────────┼───────────────────┼───────────────┼───┼─────────┼─────────┼────────┼─────────────────┤
+│ match_id     │ BIGINT      │ 7298                   │ 4020846           │          3788 │ … │ 3825812 │ 3890317 │ 130889 │            0.00 │
+│ team_id      │ BIGINT      │ 1                      │ 29167             │           343 │ … │ 221     │ 857     │ 130889 │            0.00 │
+│ player_id    │ BIGINT      │ 2935                   │ 482216            │          8677 │ … │ 8480    │ 23806   │ 130889 │            0.00 │
+│ position_id  │ BIGINT      │ 1                      │ 25                │            26 │ … │ 12      │ 19      │ 130889 │            0.00 │
+│ position     │ VARCHAR     │ Center Attacking Midf… │ Secondary Striker │            24 │ … │ NULL    │ NULL    │ 130889 │            0.00 │
+│ from_time    │ VARCHAR     │ 00:00                  │ 99:59             │          4976 │ … │ NULL    │ NULL    │ 130889 │            0.00 │
+│ to_time      │ VARCHAR     │ 00:00                  │ 99:55             │          4765 │ … │ NULL    │ NULL    │ 130889 │           58.33 │
+│ from_period  │ BIGINT      │ 1                      │ 5                 │             5 │ … │ 1       │ 2       │ 130889 │            0.00 │
+│ to_period    │ DOUBLE      │ 1.0                    │ 5.0               │             5 │ … │ 2.0     │ 2.0     │ 130889 │           58.33 │
+│ start_reason │ VARCHAR     │ Player On              │ Tactical Shift    │             9 │ … │ NULL    │ NULL    │ 130889 │            0.00 │
+│ end_reason   │ VARCHAR     │ Final Whistle          │ Tactical Shift    │            15 │ … │ NULL    │ NULL    │ 130889 │            0.00 │
+└──────────────┴─────────────┴────────────────────────┴───────────────────┴───────────────┴───┴─────────┴─────────┴────────┴─────────────────┘
+  11 rows                                        use .last to show entire result                                        12 columns (9 shown)
+statsbomb D SUMMARIZE manager_team_match_bridge;
+┌─────────────┬─────────────┬─────────┬─────────┬───────────────┬───┬─────────┬─────────┬─────────┬───────┬─────────────────┐
+│ column_name │ column_type │   min   │   max   │ approx_unique │ … │   q25   │   q50   │   q75   │ count │ null_percentage │
+│   varchar   │   varchar   │ varchar │ varchar │     int64     │ … │ varchar │ varchar │ varchar │ int64 │  decimal(9,2)   │
+├─────────────┼─────────────┼─────────┼─────────┼───────────────┼───┼─────────┼─────────┼─────────┼───────┼─────────────────┤
+│ match_id    │ BIGINT      │ 7298    │ 4020846 │          3642 │ … │ 3750419 │ 3825673 │ 3881672 │  6774 │            0.00 │
+│ team_id     │ BIGINT      │ 1       │ 29167   │           338 │ … │ 171     │ 220     │ 850     │  6774 │            0.00 │
+│ manager_id  │ BIGINT      │ 2       │ 1007078 │           537 │ … │ 178     │ 437     │ 3027    │  6774 │            0.00 │
+│ role        │ VARCHAR     │ away    │ home    │             2 │ … │ NULL    │ NULL    │ NULL    │  6774 │            0.00 │
+└─────────────┴─────────────┴─────────┴─────────┴───────────────┴───┴─────────┴─────────┴─────────┴───────┴─────────────────┘
+  4 rows                               use .last to show entire result                                12 columns (10 shown)
+statsbomb D SELECT
+              COUNT(*) AS n,
+              AVG(duration) AS media_aritmetica,
+              MEDIAN(duration) AS mediana,
+              STDDEV_SAMP(duration) AS desviacion_estandar,
+              MIN(duration) AS minimo,
+              MAX(duration) AS maximo,
+              quantile_cont(duration, 0.25) AS q1,
+              quantile_cont(duration, 0.75) AS q3,
+              CASE
+                WHEN SUM(CASE WHEN duration > 0 THEN 1 ELSE 0 END) > 0
+                THEN EXP(AVG(LN(duration)) FILTER (WHERE duration > 0))
+                ELSE NULL
+              END AS media_geometrica,
+              CASE
+                WHEN SUM(CASE WHEN duration > 0 THEN 1 ELSE 0 END) > 0
+                THEN COUNT(*) FILTER (WHERE duration > 0) / SUM(1.0 / duration) FILTER (WHERE duration > 0)
+                ELSE NULL
+              END AS media_armonica
+            FROM events_fact
+            WHERE duration IS NOT NULL;
+Out of Range Error:
+cannot take logarithm of zero
+statsbomb D statsbomb D SELECT
+                COUNT(*) AS n,
+                AVG(duration) AS media_aritmetica,
+                MEDIAN(duration) AS mediana,
+                STDDEV_SAMP(duration) AS desviacion_estandar,
+                MIN(duration) AS minimo,
+                MAX(duration) AS maximo,
+                quantile_cont(duration, 0.25) AS q1,
+                quantile_cont(duration, 0.75) AS q3,
+            
+                -- media geométrica segura
+                CASE
+                    WHEN COUNT(CASE WHEN duration > 0 THEN 1 END) > 0
+                    THEN EXP(
+                        AVG(CASE WHEN duration > 0 THEN LN(duration) END)
+                    )
+                    ELSE NULL
+                END AS media_geometrica,
+            
+                -- media armónica segura
+                CASE
+                    WHEN COUNT(CASE WHEN duration > 0 THEN 1 END) > 0
+                    THEN COUNT(CASE WHEN duration > 0 THEN 1 END)
+                         / SUM(CASE WHEN duration > 0 THEN 1.0 / duration END)
+                    ELSE NULL
+                END AS media_armonica
+            
+            FROM events_fact
+            WHERE duration IS NOT NULL;
+Parser Error:
+syntax error at or near "statsbomb"
+
+LINE 1: statsbomb D SELECT
+        ^
+statsbomb D SELECT
+                COUNT(*) AS n,
+                AVG(duration) AS media_aritmetica,
+                MEDIAN(duration) AS mediana,
+                STDDEV_SAMP(duration) AS desviacion_estandar,
+                MIN(duration) AS minimo,
+                MAX(duration) AS maximo,
+                quantile_cont(duration, 0.25) AS q1,
+                quantile_cont(duration, 0.75) AS q3,
+            
+                -- media geométrica segura
+                CASE
+                    WHEN COUNT(CASE WHEN duration > 0 THEN 1 END) > 0
+                    THEN EXP(
+                        AVG(CASE WHEN duration > 0 THEN LN(duration) END)
+                    )
+                    ELSE NULL
+                END AS media_geometrica,
+            
+                -- media armónica segura
+                CASE
+                    WHEN COUNT(CASE WHEN duration > 0 THEN 1 END) > 0
+                    THEN COUNT(CASE WHEN duration > 0 THEN 1 END)
+                         / SUM(CASE WHEN duration > 0 THEN 1.0 / duration END)
+                    ELSE NULL
+                END AS media_armonica
+            
+            FROM events_fact
+            WHERE duration IS NOT NULL;
+┌─────────┬────────────────────┬─────────┬─────────────────────┬───┬──────────┬──────────┬────────────────────┬────────────────────┐
+│    n    │  media_aritmetica  │ mediana │ desviacion_estandar │ … │    q1    │    q3    │  media_geometrica  │   media_armonica   │
+│  int64  │       double       │ double  │       double        │ … │  double  │  double  │       double       │       double       │
+├─────────┼────────────────────┼─────────┼─────────────────────┼───┼──────────┼──────────┼────────────────────┼────────────────────┤
+│ 8985827 │ 1.2348837207431977 │ 1.01418 │  2.0944391553086876 │ … │ 0.254172 │ 1.711879 │ 1.1018057416157345 │ 0.4021313634730911 │
+└─────────┴────────────────────┴─────────┴─────────────────────┴───┴──────────┴──────────┴────────────────────┴────────────────────┘
+  1 rows                                   use .last to show entire result                                    10 columns (8 shown)
+statsbomb D SELECT
+              COUNT(*) AS n,
+              AVG(duration) AS mean,
+              MEDIAN(duration) AS median,
+              STDDEV_SAMP(duration) AS std,
+              MIN(duration) AS min,
+              quantile_cont(duration, 0.25) AS p25,
+              quantile_cont(duration, 0.50) AS p50,
+              quantile_cont(duration, 0.75) AS p75,
+              MAX(duration) AS max
+            FROM events_fact
+            WHERE duration IS NOT NULL;
+┌─────────┬────────────────────┬─────────┬────────────────────┬───────────┬──────────┬─────────┬──────────┬───────────┐
+│    n    │        mean        │ median  │        std         │    min    │   p25    │   p50   │   p75    │    max    │
+│  int64  │       double       │ double  │       double       │  double   │  double  │ double  │  double  │  double   │
+├─────────┼────────────────────┼─────────┼────────────────────┼───────────┼──────────┼─────────┼──────────┼───────────┤
+│ 8985827 │ 1.2348837207431977 │ 1.01418 │ 2.0944391553086876 │ -2660.414 │ 0.254172 │ 1.01418 │ 1.711879 │ 1746.5853 │
+└─────────┴────────────────────┴─────────┴────────────────────┴───────────┴──────────┴─────────┴──────────┴───────────┘
+statsbomb D SELECT event_type_name, COUNT(*) AS freq
+            FROM events_fact
+            GROUP BY event_type_name
+            ORDER BY freq DESC;
+┌───────────────────┬─────────┐
+│  event_type_name  │  freq   │
+│      varchar      │  int64  │
+├───────────────────┼─────────┤
+│ Pass              │ 3386808 │
+│ Ball Receipt*     │ 3166415 │
+│ Carry             │ 2631852 │
+│ Pressure          │ 1113488 │
+│ Ball Recovery     │  366560 │
+│ Duel              │  257785 │
+│ Clearance         │  158962 │
+│ Block             │  132309 │
+│ Dribble           │  122013 │
+│ Goal Keeper       │  106546 │
+│ Foul Committed    │  100481 │
+│ Miscontrol        │   99349 │
+│ Foul Won          │   95569 │
+│ Dispossessed      │   88783 │
+│ Shot              │   88000 │
+│ Interception      │   79623 │
+│ Dribbled Past     │   76259 │
+│ Substitution      │   21508 │
+│ Half Start        │   14124 │
+│ Half End          │   14124 │
+│ Injury Stoppage   │   13884 │
+│ 50/50             │   10491 │
+│ Tactical Shift    │    8676 │
+│ Starting XI       │    6926 │
+│ Shield            │    4644 │
+│ Referee Ball-Drop │    4249 │
+│ Player Off        │    3317 │
+│ Player On         │    3289 │
+│ Camera On         │    2595 │
+│ Bad Behaviour     │    2531 │
+│ Error             │    1703 │
+│ Offside           │    1235 │
+│ Camera off        │     693 │
+│ Own Goal For      │     337 │
+│ Own Goal Against  │     337 │
+└───────────────────┴─────────┘
+  35 rows           2 columns
+statsbomb D 
+statsbomb D SELECT play_pattern_name, COUNT(*) AS freq
+            FROM events_fact
+            GROUP BY play_pattern_name
+            ORDER BY freq DESC;
+┌───────────────────┬─────────┐
+│ play_pattern_name │  freq   │
+│      varchar      │  int64  │
+├───────────────────┼─────────┤
+│ Regular Play      │ 5399977 │
+│ From Throw In     │ 2861721 │
+│ From Free Kick    │ 1772231 │
+│ From Goal Kick    │  886699 │
+│ From Corner       │  433534 │
+│ From Kick Off     │  365779 │
+│ From Keeper       │  319767 │
+│ From Counter      │  111322 │
+│ Other             │   34435 │
+└───────────────────┴─────────┘
+statsbomb D 
+statsbomb D SELECT match_status_360, COUNT(*) AS freq
+            FROM matches_fact
+            GROUP BY match_status_360
+            ORDER BY freq DESC;
+┌──────────────────┬───────┐
+│ match_status_360 │ freq  │
+│     varchar      │ int64 │
+├──────────────────┼───────┤
+│ unscheduled      │  1636 │
+│ scheduled        │  1198 │
+│ available        │   425 │
+│ processing       │   205 │
+└──────────────────┴───────┘
+statsbomb D SELECT
+              quantile_cont(duration, 0.01) AS p01,
+              quantile_cont(duration, 0.10) AS p10,
+              quantile_cont(duration, 0.25) AS p25,
+              quantile_cont(duration, 0.50) AS p50,
+              quantile_cont(duration, 0.75) AS p75,
+              quantile_cont(duration, 0.90) AS p90,
+              quantile_cont(duration, 0.99) AS p99
+            FROM events_fact
+            WHERE duration IS NOT NULL;
+┌────────┬────────┬──────────┬─────────┬──────────┬────────┬───────────────────┐
+│  p01   │  p10   │   p25    │   p50   │   p75    │  p90   │        p99        │
+│ double │ double │  double  │ double  │  double  │ double │      double       │
+├────────┼────────┼──────────┼─────────┼──────────┼────────┼───────────────────┤
+│    0.0 │    0.0 │ 0.254172 │ 1.01418 │ 1.711879 │ 2.7098 │ 5.654746740000001 │
+└────────┴────────┴──────────┴─────────┴──────────┴────────┴───────────────────┘
+statsbomb D SELECT
+              corr(index, minute) AS corr_index_minute,
+              corr(minute, possession) AS corr_minute_possession,
+              corr(index, possession) AS corr_index_possession,
+              corr(team_id, possession_team_id) AS corr_team_possession_team,
+              corr(period, minute) AS corr_period_minute,
+              corr(event_type_id, duration) AS corr_eventtype_duration,
+              corr(event_type_id, x) AS corr_eventtype_x,
+              covar_samp(index, minute) AS cov_index_minute,
+              covar_samp(team_id, possession_team_id) AS cov_team_possession_team
+            FROM events_fact
+            WHERE duration IS NOT NULL
+              AND x IS NOT NULL
+              AND y IS NOT NULL;
+┌───────────────────┬────────────────────────┬───────────────────────┬───┬─────────────────────┬────────────────────┬────────────────────────┐
+│ corr_index_minute │ corr_minute_possession │ corr_index_possession │ … │  corr_eventtype_x   │  cov_index_minute  │ cov_team_possession_t… │
+│      double       │         double         │        double         │ … │       double        │       double       │         double         │
+├───────────────────┼────────────────────────┼───────────────────────┼───┼─────────────────────┼────────────────────┼────────────────────────┤
+│ 0.974124173238045 │     0.9724704972325738 │    0.9432679912573424 │ … │ 0.08503513299177991 │ 27891.198017828054 │      2143389.139028409 │
+└───────────────────┴────────────────────────┴───────────────────────┴───┴─────────────────────┴────────────────────┴────────────────────────┘
+  1 rows                                         use .last to show entire result                                         9 columns (6 shown)
+statsbomb D WITH base AS (
+              SELECT
+                index,
+                period,
+                minute,
+                second,
+                event_type_id,
+                team_id,
+                possession,
+                possession_team_id,
+                play_pattern_id,
+                duration,
+                x,
+                y
+              FROM events_fact
+              WHERE duration IS NOT NULL AND x IS NOT NULL AND y IS NOT NULL
+            )
+            SELECT
+              corr(index, minute) AS index_minute,
+              corr(index, possession) AS index_possession,
+              corr(period, minute) AS period_minute,
+              corr(period, possession) AS period_possession,
+              corr(team_id, possession_team_id) AS team_possession_team,
+              corr(event_type_id, duration) AS eventtype_duration,
+              corr(event_type_id, x) AS eventtype_x,
+              corr(duration, x) AS duration_x,
+              corr(duration, y) AS duration_y,
+              corr(x, y) AS x_y
+            FROM base;
+┌────────────────────┬────────────────────┬───────────────────┬───┬───────────────────────┬────────────────────────┬──────────────────────┐
+│    index_minute    │  index_possession  │   period_minute   │ … │      duration_x       │       duration_y       │         x_y          │
+│       double       │       double       │      double       │ … │        double         │         double         │        double        │
+├────────────────────┼────────────────────┼───────────────────┼───┼───────────────────────┼────────────────────────┼──────────────────────┤
+│ 0.9741241732380452 │ 0.9432679912573421 │ 0.854689813392145 │ … │ -0.043704542374941445 │ -0.0016499196683623372 │ 0.013898330056485955 │
+└────────────────────┴────────────────────┴───────────────────┴───┴───────────────────────┴────────────────────────┴──────────────────────┘
+  1 rows                                       use .last to show entire result                                       10 columns (6 shown)
+statsbomb D SELECT
+              COUNT(*) AS eventos,
+              COUNT(DISTINCT e.match_id) AS partidos,
+              COUNT(DISTINCT m.competition_id) AS competencias
+            FROM events_fact e
+            JOIN matches_fact m USING (match_id);
+┌──────────┬──────────┬──────────────┐
+│ eventos  │ partidos │ competencias │
+│  int64   │  int64   │    int64     │
+├──────────┼──────────┼──────────────┤
+│ 12185465 │     3463 │           21 │
+└──────────┴──────────┴──────────────┘
+statsbomb D SELECT
+              m.competition_id,
+              c.competition_name,
+              COUNT(*) AS partidos,
+              AVG(m.home_score) AS avg_home_score,
+              AVG(m.away_score) AS avg_away_score
+            FROM matches_fact m
+            LEFT JOIN competitions c
+              ON m.competition_id = c.competition_id
+            GROUP BY 1, 2
+            ORDER BY partidos DESC;
+┌────────────────┬─────────────────────────┬──────────┬────────────────────┬────────────────────┐
+│ competition_id │    competition_name     │ partidos │   avg_home_score   │   avg_away_score   │
+│     int64      │         varchar         │  int64   │       double       │       double       │
+├────────────────┼─────────────────────────┼──────────┼────────────────────┼────────────────────┤
+│             11 │ La Liga                 │    15624 │  1.816820276497696 │  1.336405529953917 │
+│              7 │ Ligue 1                 │     1305 │ 1.4758620689655173 │ 1.1540229885057471 │
+│             43 │ FIFA World Cup          │     1176 │  1.619047619047619 │ 1.1428571428571428 │
+│             37 │ FA Women's Super League │      978 │ 1.5705521472392638 │ 1.4938650306748467 │
+│              2 │ Premier League          │      836 │ 1.4808612440191387 │ 1.2105263157894737 │
+│             12 │ Serie A                 │      762 │ 1.4698162729658792 │  1.110236220472441 │
+│              9 │ 1. Bundesliga           │      680 │ 1.5852941176470587 │ 1.2941176470588236 │
+│             16 │ Champions League        │      324 │ 1.6111111111111112 │ 1.3888888888888888 │
+│             72 │ Women's World Cup       │      232 │ 1.5689655172413792 │  1.103448275862069 │
+│             55 │ UEFA Euro               │      204 │ 1.2352941176470589 │  1.303921568627451 │
+│             53 │ UEFA Women's Euro       │      124 │ 2.0483870967741935 │ 1.1935483870967742 │
+│           1238 │ Indian Super league     │      115 │  1.565217391304348 │ 1.5130434782608695 │
+│           1267 │ African Cup of Nations  │       52 │ 1.4038461538461537 │ 0.8846153846153846 │
+│             49 │ NWSL                    │       36 │                1.5 │ 1.3888888888888888 │
+│            223 │ Copa America            │       32 │              1.375 │             0.8125 │
+│             87 │ Copa del Rey            │        9 │                2.0 │ 0.6666666666666666 │
+│             44 │ Major League Soccer     │        6 │                1.0 │                1.0 │
+│             81 │ Liga Profesional        │        4 │                2.0 │                1.0 │
+│             35 │ UEFA Europa League      │        3 │ 2.3333333333333335 │ 0.3333333333333333 │
+│            116 │ North American League   │        1 │                2.0 │                1.0 │
+│           1470 │ FIFA U20 World Cup      │        1 │                3.0 │                1.0 │
+└────────────────┴─────────────────────────┴──────────┴────────────────────┴────────────────────┘
+  21 rows                                                                             5 columns
+statsbomb D SELECT
+              e.match_id,
+              COUNT(*) AS eventos,
+              COUNT(DISTINCT e.team_id) AS equipos_en_eventos,
+              COUNT(DISTINCT l.player_id) AS jugadores_en_lineup
+            FROM events_fact e
+            LEFT JOIN match_lineup_players l
+              ON e.match_id = l.match_id
+            GROUP BY 1
+            ORDER BY eventos DESC
+            LIMIT 20;
+┌──────────┬─────────┬────────────────────┬─────────────────────┐
+│ match_id │ eventos │ equipos_en_eventos │ jugadores_en_lineup │
+│  int64   │  int64  │       int64        │        int64        │
+├──────────┼─────────┼────────────────────┼─────────────────────┤
+│  3942349 │  259500 │                  2 │                  50 │
+│  3869420 │  257250 │                  2 │                  50 │
+│  3942227 │  248982 │                  2 │                  51 │
+│  3941017 │  247728 │                  2 │                  52 │
+│  3869220 │  247000 │                  2 │                  52 │
+│  3869321 │  244816 │                  2 │                  52 │
+│  3942226 │  232076 │                  2 │                  52 │
+│  3857255 │  231400 │                  2 │                  52 │
+│  3795108 │  229540 │                  2 │                  46 │
+│  3794692 │  226366 │                  2 │                  46 │
+│  3857291 │  226356 │                  2 │                  52 │
+│     7582 │  226080 │                  2 │                  45 │
+│  3794685 │  224618 │                  2 │                  46 │
+│  3857294 │  224224 │                  2 │                  52 │
+│  3794686 │  223560 │                  2 │                  46 │
+│  4020846 │  222180 │                  2 │                  46 │
+│  3795220 │  222042 │                  2 │                  46 │
+│  3795506 │  220616 │                  2 │                  46 │
+│  3869685 │  220350 │                  2 │                  50 │
+│  3869219 │  218832 │                  2 │                  48 │
+└──────────┴─────────┴────────────────────┴─────────────────────┘
+  20 rows                                             4 columns
+statsbomb D SELECT
+              m.match_id,
+              m.home_team_id,
+              m.away_team_id,
+              m.home_score,
+              m.away_score,
+              COUNT(e.event_id) AS total_eventos
+            FROM matches_fact m
+            LEFT JOIN events_fact e
+              ON m.match_id = e.match_id
+            GROUP BY 1,2,3,4,5
+            ORDER BY total_eventos DESC
+            LIMIT 50;
+┌──────────┬──────────────┬──────────────┬────────────┬────────────┬───────────────┐
+│ match_id │ home_team_id │ away_team_id │ home_score │ away_score │ total_eventos │
+│  int64   │    int64     │    int64     │   int64    │   int64    │     int64     │
+├──────────┼──────────────┼──────────────┼────────────┼────────────┼───────────────┤
+│  3942349 │          780 │          771 │          0 │          0 │          5190 │
+│  3869420 │          785 │          781 │          1 │          1 │          5145 │
+│     7582 │          772 │          796 │          1 │          1 │          5024 │
+│  3795108 │          773 │          772 │          1 │          1 │          4990 │
+│  3794692 │          790 │          911 │          1 │          2 │          4921 │
+│  3895210 │          904 │          185 │          0 │          0 │          4893 │
+│  3794685 │          914 │          915 │          2 │          1 │          4883 │
+│  3942227 │          768 │          773 │          1 │          1 │          4882 │
+│  3794686 │          785 │          772 │          3 │          5 │          4860 │
+│  4020846 │          865 │          863 │          1 │          1 │          4830 │
+│  3795220 │          914 │          772 │          1 │          1 │          4827 │
+│  3773369 │          217 │          902 │          4 │          1 │          4806 │
+│  3795506 │          914 │          768 │          1 │          1 │          4796 │
+│  3837938 │          136 │          131 │          0 │          2 │          4794 │
+│  3941017 │          768 │          908 │          2 │          1 │          4764 │
+│  3869220 │          788 │          772 │          0 │          0 │          4750 │
+│    70305 │          217 │          219 │          2 │          0 │          4740 │
+│    18243 │          220 │          212 │          1 │          1 │          4708 │
+│  3869321 │          941 │          779 │          2 │          2 │          4708 │
+│    18237 │          169 │           33 │          1 │          1 │          4695 │
+│      ·   │           ·  │            · │          · │          · │            ·  │
+│      ·   │           ·  │            · │          · │          · │            ·  │
+│      ·   │           ·  │            · │          · │          · │            ·  │
+│  3902240 │          863 │          851 │          2 │          1 │          4576 │
+│    69297 │          217 │          212 │          5 │          0 │          4571 │
+│  3794691 │          771 │          773 │          3 │          3 │          4570 │
+│    69296 │         1218 │          217 │          0 │          3 │          4567 │
+│  3869219 │          778 │          785 │          1 │          1 │          4559 │
+│    70308 │          217 │          209 │          3 │          1 │          4555 │
+│   266827 │          223 │          217 │          1 │          3 │          4542 │
+│    16023 │          207 │          217 │          1 │          1 │          4541 │
+│    69272 │          221 │          217 │          1 │          1 │          4525 │
+│  3895153 │          176 │          904 │          0 │          3 │          4520 │
+│  3900591 │          131 │          145 │          5 │          1 │          4517 │
+│  3900490 │          134 │          131 │          0 │          1 │          4511 │
+│    70280 │          221 │          217 │          0 │          4 │          4490 │
+│    16182 │          217 │          901 │          1 │          0 │          4487 │
+│  3844387 │          861 │          851 │          1 │          0 │          4468 │
+│    16157 │          217 │          207 │          2 │          2 │          4465 │
+│  3942226 │          772 │          770 │          2 │          1 │          4463 │
+│    16248 │          217 │          212 │          2 │          0 │          4463 │
+│  3879635 │          227 │          238 │          2 │          1 │          4453 │
+│  3857255 │          778 │          772 │          2 │          1 │          4450 │
+└──────────┴──────────────┴──────────────┴────────────┴────────────┴───────────────┘
+  50 rows (40 shown)           use .last to show entire result           6 columns
+statsbomb D SELECT
+              position,
+              COUNT(*) AS apariciones,
+              AVG(CASE WHEN to_period IS NOT NULL THEN to_period - from_period ELSE NULL END) AS duracion_promedio_periodos
+            FROM player_match_position_fact
+            GROUP BY position
+            ORDER BY apariciones DESC;
+┌───────────────────────────┬─────────────┬────────────────────────────┐
+│         position          │ apariciones │ duracion_promedio_periodos │
+│          varchar          │    int64    │           double           │
+├───────────────────────────┼─────────────┼────────────────────────────┤
+│ Center Forward            │        9296 │         0.6861667033208709 │
+│ Right Center Back         │        8956 │         0.6173570019723866 │
+│ Left Center Back          │        8836 │         0.5959915611814346 │
+│ Right Wing                │        8758 │         0.5542028985507247 │
+│ Left Wing                 │        8629 │         0.5641992458821194 │
+│ Right Back                │        8382 │         0.6726663876098786 │
+│ Left Back                 │        8063 │         0.6724721819061442 │
+│ Goalkeeper                │        7027 │         0.6138613861386139 │
+│ Left Center Midfield      │        6839 │         0.6167542323409223 │
+│ Right Center Midfield     │        6835 │         0.6294014084507042 │
+│ Right Defensive Midfield  │        6498 │         0.6038500506585613 │
+│ Center Attacking Midfield │        6459 │         0.5782994560549671 │
+│ Left Defensive Midfield   │        6363 │         0.5954063604240283 │
+│ Left Midfield             │        4987 │         0.5232558139534884 │
+│ Right Midfield            │        4923 │         0.5367756315007429 │
+│ Center Defensive Midfield │        4868 │         0.6364864864864865 │
+│ Right Center Forward      │        4449 │         0.5897887323943662 │
+│ Left Center Forward       │        4410 │         0.5946067415730337 │
+│ Right Wing Back           │        1847 │         0.5866523143164694 │
+│ Left Wing Back            │        1776 │         0.5849941383352872 │
+│ Center Back               │        1527 │         0.6337522441651705 │
+│ Left Attacking Midfield   │         512 │          0.511326860841424 │
+│ Right Attacking Midfield  │         510 │         0.5111821086261981 │
+│ Center Midfield           │          99 │         0.6666666666666666 │
+│ Secondary Striker         │          40 │        0.35714285714285715 │
+└───────────────────────────┴─────────────┴────────────────────────────┘
+  25 rows                                                    3 columns
+statsbomb D SELECT
+              team_id,
+              COUNT(DISTINCT player_id) AS jugadores_distintos,
+              COUNT(*) AS registros
+            FROM match_lineup_players
+            GROUP BY team_id
+            ORDER BY jugadores_distintos DESC;
+┌─────────┬─────────────────────┬───────────┐
+│ team_id │ jugadores_distintos │ registros │
+│  int64  │        int64        │   int64   │
+├─────────┼─────────────────────┼───────────┤
+│     217 │                 188 │      8753 │
+│     216 │                 169 │      1060 │
+│     213 │                 164 │      1138 │
+│     218 │                 163 │      1024 │
+│     221 │                 156 │      1006 │
+│     207 │                 152 │      1112 │
+│     214 │                 148 │      1076 │
+│     781 │                 142 │       574 │
+│     222 │                 133 │      1065 │
+│     223 │                 131 │       922 │
+│     220 │                 123 │      1206 │
+│     212 │                 123 │      1179 │
+│     422 │                 123 │       315 │
+│    1049 │                 120 │       881 │
+│     901 │                 117 │       231 │
+│     209 │                 113 │       952 │
+│     779 │                 106 │       537 │
+│     219 │                 106 │       921 │
+│     215 │                 105 │      1121 │
+│     768 │                 100 │       671 │
+│      ·  │                   · │         · │
+│      ·  │                   · │         · │
+│      ·  │                   · │         · │
+│     489 │                  20 │        20 │
+│     387 │                  20 │        20 │
+│    8070 │                  20 │        20 │
+│    1219 │                  20 │        31 │
+│     575 │                  20 │        20 │
+│     444 │                  19 │        28 │
+│    1230 │                  18 │        18 │
+│   17403 │                  18 │        18 │
+│    9763 │                  18 │        18 │
+│      98 │                  18 │        28 │
+│      46 │                  18 │        25 │
+│      54 │                  18 │        30 │
+│     328 │                  17 │        28 │
+│     806 │                  15 │        35 │
+│    1036 │                  14 │        14 │
+│     256 │                  14 │        14 │
+│    1076 │                  13 │        13 │
+│     488 │                  13 │        13 │
+│    2735 │                  12 │        12 │
+│     952 │                  11 │        11 │
+└─────────┴─────────────────────┴───────────┘
+  312 rows (40 shown)             3 columns
+statsbomb D SELECT
+              COUNT(*) AS total,
+              COUNT(DISTINCT match_id) AS partidos,
+              COUNT(DISTINCT event_uuid) AS eventos
+            FROM three_sixty_events;
+┌─────────┬──────────┬─────────┐
+│  total  │ partidos │ eventos │
+│  int64  │  int64   │  int64  │
+├─────────┼──────────┼─────────┤
+│ 1027908 │      323 │ 1027908 │
+└─────────┴──────────┴─────────┘
+statsbomb D 
+statsbomb D SELECT
+              AVG(x) AS avg_x,
+              AVG(y) AS avg_y,
+              STDDEV_SAMP(x) AS std_x,
+              STDDEV_SAMP(y) AS std_y
+            FROM three_sixty_freeze_frame;
+┌───────────────────┬───────────────────┬───────────────────┬────────────────────┐
+│       avg_x       │       avg_y       │       std_x       │       std_y        │
+│      double       │      double       │      double       │       double       │
+├───────────────────┼───────────────────┼───────────────────┼────────────────────┤
+│ 64.14864535653663 │ 40.01790124570303 │ 27.88265503121175 │ 18.380405771745203 │
+└───────────────────┴───────────────────┴───────────────────┴────────────────────┘
+statsbomb D WITH stats AS (
+              SELECT
+                quantile_cont(duration, 0.25) AS q1,
+                quantile_cont(duration, 0.75) AS q3
+              FROM events_fact
+              WHERE duration IS NOT NULL
+            )
+            SELECT
+              COUNT(*) AS outliers_duration
+            FROM events_fact, stats
+            WHERE duration IS NOT NULL
+              AND (duration < q1 - 1.5 * (q3 - q1) OR duration > q3 + 1.5 * (q3 - q1));
+┌───────────────────┐
+│ outliers_duration │
+│       int64       │
+├───────────────────┤
+│            331997 │
+└───────────────────┘

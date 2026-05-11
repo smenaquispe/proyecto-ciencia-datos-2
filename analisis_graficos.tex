@@ -1,0 +1,181 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\title{Analisis de tablas Parquet, distribuciones y correlaciones}
+\author{Proyecto StatsBomb}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Objetivo}
+El objetivo de este informe es describir las tablas procesadas del proyecto, justificar las metricas estadisticas usadas y explicar como interpretar los graficos generados a partir de DuckDB. El foco esta en las tablas de hechos y en las tablas puente, porque son las que concentran la informacion util para analisis descriptivo, tactico y espacial.
+
+\section{Tablas prioritarias}
+Las tablas con mayor valor analitico son:
+\begin{itemize}
+  \item \textbf{events\_fact}: nivel evento, con variables de tiempo, tipo de evento, posesion y coordenadas espaciales.
+  \item \textbf{matches\_fact}: nivel partido, con resultados, competencia, temporada, estadio y estado de disponibilidad.
+  \item \textbf{match\_lineup\_players}: nivel jugador-partido, util para analizar presencia, pais y dorsal.
+  \item \textbf{player\_match\_position\_fact}: nivel jugador-posicion-intervalo, clave para lectura tactica.
+  \item \textbf{manager\_team\_match\_bridge}: relacion manager-equipo-partido.
+  \item \textbf{three\_sixty\_freeze\_frame} y \textbf{three\_sixty\_events}: analisis espacial y de cobertura 360.
+\end{itemize}
+
+\section{Metodologia estadistica}
+Para cada variable numerica se usaron medidas de tendencia central y dispersion. Para variables categoricas se usaron frecuencias. Para relaciones entre features numericas se uso correlacion de Pearson y covarianza.
+
+\subsection{Medidas de tendencia central}
+Las definiciones que sustentan el analisis son:
+\[
+\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i
+\]
+\[
+\tilde{x} = \text{mediana}(x)
+\]
+\[
+x_{\mathrm{mode}} = \arg\max_v \; f(v)
+\]
+\[
+G = \left(\prod_{i=1}^{n} x_i\right)^{1/n}, \quad x_i > 0
+\]
+\[
+H = \frac{n}{\sum_{i=1}^{n} \frac{1}{x_i}}, \quad x_i > 0
+\]
+La media aritmetica resume el centro global, la mediana es robusta ante asimetria, la moda identifica el valor mas frecuente, la media geometrica es util para escalas multiplicativas y la armonica penaliza valores altos y resalta magnitudes pequenas.
+
+\subsection{Dispersión}
+La desviacion estandar se definio como:
+\[
+s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}
+\]
+Se acompana con cuartiles, rango intercuartil y boxplots para identificar asimetria y outliers.
+
+\subsection{Correlacion y covarianza}
+La covarianza mide variacion conjunta:
+\[
+\operatorname{cov}(X,Y)=\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})
+\]
+La correlacion de Pearson normaliza la covarianza y queda en el intervalo $[-1,1]$:
+\[
+r_{XY}=\frac{\operatorname{cov}(X,Y)}{s_X s_Y}
+\]
+Esto permite comparar la fuerza de la relacion entre pares de features. En este proyecto la correlacion es mas interpretable que la covarianza, porque la covarianza depende de la escala de las variables.
+
+\section{Criterio de selección de graficos}
+Se eligieron cuatro familias de graficos:
+\begin{itemize}
+  \item Histogramas para ver sesgo, concentracion y colas.
+  \item Boxplots para outliers y simetria.
+  \item Barras para variables categoricas y cardinalidad.
+  \item Heatmaps de correlacion para relaciones lineales entre features numericas.
+\end{itemize}
+
+\section{Interpretacion por tabla}
+
+\subsection{events\_fact}
+Esta es la tabla principal de eventos. Las columnas \texttt{minute}, \texttt{second}, \texttt{period}, \texttt{index} y \texttt{possession} muestran estructura secuencial, por eso su correlacion es alta entre si. No se deben leer como causalidad, sino como dependencia temporal del flujo del partido.
+
+La variable \texttt{duration} es la mas relevante para distribucion: su media, mediana y desviacion estandar muestran sesgo fuerte y presencia de outliers. Por eso la mediana y los percentiles describen mejor el comportamiento tipico que la media sola.
+
+Las columnas \texttt{event\_type\_name} y \texttt{play\_pattern\_name} deben analizarse por frecuencia porque son categoricas. Su interpretacion es operacional: indican que tipos de acciones dominan la muestra.
+
+El heatmap de correlacion en eventos es importante para detectar redundancia. En especial, una correlacion alta entre \texttt{index}, \texttt{minute} y \texttt{possession} confirma que hay estructura de secuencia. La relacion entre \texttt{team\_id} y \texttt{possession\_team\_id} valida coherencia de posesion por equipo.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/events_duration_hist.png}
+  \caption{Distribucion de \texttt{duration} en eventos. Sirve para detectar asimetria, colas y valores extremos.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/events_correlation_heatmap.png}
+  \caption{Correlacion entre features numericas de eventos. Se usa para identificar relaciones lineales y redundancia.}
+\end{figure}
+
+\subsection{matches\_fact}
+La tabla de partidos organiza el contexto del analisis. Las variables \texttt{home\_score}, \texttt{away\_score}, \texttt{match\_week} y \texttt{competition\_stage\_id} son discretas y concentradas en rangos pequenos. Por eso conviene usar histogramas, cajas y frecuencias, no asumir normalidad.
+
+Las variables \texttt{competition\_id}, \texttt{season\_id}, \texttt{home\_team\_id} y \texttt{away\_team\_id} son llaves de contexto, no magnitudes con interpretacion de distancia. Se incluyen en el analisis porque sirven para cruces con otras tablas, pero su correlacion no debe interpretarse como dependencia sustantiva.
+
+El estado \texttt{match\_status\_360} debe estudiarse por frecuencia porque informa disponibilidad de cobertura 360 y afecta la calidad del resto del analisis espacial.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/matches_home_score_hist.png}
+  \caption{Distribucion de \texttt{home\_score}. Permite ver concentracion en resultados bajos y presencia de ceros.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/matches_match_status_360_bar.png}
+  \caption{Frecuencia de \texttt{match\_status\_360}. Es una variable de calidad de datos, no de rendimiento deportivo.}
+\end{figure}
+
+\subsection{match\_lineup\_players}
+Esta tabla relaciona jugadores, equipos y partidos. \texttt{jersey\_number} tiene una distribucion discreta con valores anómalos altos; se recomienda boxplot y conteos por rango. \texttt{player\_name} y \texttt{country\_name} se analizan por frecuencia para descubrir concentracion de perfiles y paises dominantes.
+
+La correlacion entre \texttt{team\_id} y \texttt{player\_id} es moderada porque refleja la estructura de pertenencia, pero no debe interpretarse como relacion numerica intrinseca.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/lineups_jersey_number_hist.png}
+  \caption{Distribucion de \texttt{jersey\_number}. Sirve para detectar dorsales atipicos y concentracion en numeros habituales.}
+\end{figure}
+
+\subsection{player\_match\_position\_fact}
+Esta tabla es esencial para analisis tactico. \texttt{position\_id}, \texttt{from\_period} y \texttt{to\_period} permiten estudiar permanencia, cambios de rol y sustituciones.
+
+Los graficos de frecuencias en \texttt{position}, \texttt{start\_reason} y \texttt{end\_reason} explican la estructura real de transiciones. La correlacion entre \texttt{position\_id} y \texttt{from\_period} puede sugerir que ciertos roles aparecen con mas peso en tramos especificos del partido.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/positions_position_bar.png}
+  \caption{Frecuencia de posiciones. Resume la ocupacion tactica observada en la muestra.}
+\end{figure}
+
+\subsection{manager\_team\_match\_bridge}
+Esta tabla puente permite enlazar manager, equipo y partido. Es vital para analisis de contexto organizacional y para estudiar cambios de tecnico por competencia o temporada. \texttt{role} debe analizarse por frecuencia porque separa home y away.
+
+\subsection{three\_sixty\_events y three\_sixty\_freeze\_frame}
+Estas tablas soportan analisis espacial. Las variables \texttt{x} e \texttt{y} no deben interpretarse como gaussianas; conviene usar histogramas, densidad y dispersión espacial. La media y la desviacion estandar sirven como resumen, pero la interpretacion principal es posicional.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{output/figures/tracking_xy_scatter.png}
+  \caption{Nube espacial de freeze frames. Sirve para ver concentracion de posiciones y patrones de cobertura.}
+\end{figure}
+
+\section{Como interpretar las metricas}
+\begin{itemize}
+  \item Si la media y la mediana son similares, la distribucion es aproximadamente simetrica.
+  \item Si la media supera mucho a la mediana, hay sesgo positivo y valores altos extremos.
+  \item Si hay correlaciones altas entre variables de tiempo, suele haber dependencia estructural y no un hallazgo tactico directo.
+  \item Si una variable es identificador, su correlacion con otras suele ser artefacto de codificacion y no una relacion semantica.
+  \item Si covarianza y correlacion dicen cosas distintas, se debe priorizar correlacion para comparar fuerza de relacion.
+\end{itemize}
+
+\section{Conclusión}
+El analisis debe centrarse en \texttt{events\_fact} para comportamiento de juego, en \texttt{matches\_fact} para contexto competitivo, en las tablas de alineaciones para estructura de jugadores, y en las tablas 360 para analisis espacial. Las medidas de tendencia central, dispersion, correlacion y covarianza son utiles siempre que se interpreten segun el tipo de variable y no se mezclen llaves con magnitudes.
+
+\end{document}
