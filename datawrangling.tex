@@ -1,0 +1,1553 @@
+\documentclass[12pt,a4paper]{article}
+
+% =========================
+% PAQUETES
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage[most]{tcolorbox}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{titlesec}
+\usepackage{eso-pic}
+\usepackage{seqsplit}
+\geometry{margin=2.5cm, top=3cm, bottom=3cm, headheight=15pt}
+\setstretch{1.3}
+
+% =========================
+% COLORES
+% =========================
+\definecolor{primary}{RGB}{30, 80, 150}
+\definecolor{secondary}{RGB}{0, 140, 200}
+\definecolor{accent}{RGB}{0, 160, 100}
+\definecolor{lightgray}{RGB}{245, 247, 250}
+\definecolor{medgray}{RGB}{220, 225, 235}
+\definecolor{darkgray}{RGB}{80, 90, 110}
+\definecolor{tableheader}{RGB}{30, 80, 150}
+\definecolor{tablerow}{RGB}{235, 242, 252}
+\definecolor{tablealt}{RGB}{255, 255, 255}
+\definecolor{rednull}{RGB}{180, 40, 40}
+\definecolor{orangenull}{RGB}{190, 100, 0}
+
+% =========================
+% ENCABEZADOS Y PIE
+% =========================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{darkgray}\textit{Auditoría de Datos --- Modelo Dimensional}}
+\fancyhead[R]{\small\color{darkgray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% =========================
+% ESTILOS DE SECCION
+% =========================
+\titleformat{\section}
+  {\Large\bfseries\color{primary}}
+  {\thesection.}{0.8em}{}[\vspace{-0.3em}\textcolor{secondary}{\rule{\linewidth}{1.5pt}}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{secondary}}
+  {\thesubsection}{0.8em}{}
+
+\titlespacing{\section}{0pt}{1.5em}{0.8em}
+\titlespacing{\subsection}{0pt}{1em}{0.5em}
+
+% =========================
+% COLUMNAS DE TABLA
+% =========================
+\newcolumntype{T}[1]{>{\ttfamily\seqsplit}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\newcommand{\thead}[1]{%
+  \cellcolor{tableheader}\textcolor{white}{\textbf{#1}}%
+}
+
+% =========================
+% INICIO DEL DOCUMENTO
+% =========================
+\begin{document}
+
+% =========================
+% CARATULA
+% =========================
+\thispagestyle{empty}
+
+\begin{tikzpicture}[remember picture, overlay]
+  % Fondo oscuro total
+  \fill[primary] (current page.north west) rectangle (current page.south east);
+  % Franja superior
+  \fill[secondary] (current page.north west) rectangle ([yshift=-4.5cm]current page.north east);
+  % Franja inferior
+  \fill[accent] (current page.south west) rectangle ([yshift=2.5cm]current page.south east);
+  % Tarjeta blanca central
+  \fill[white, rounded corners=8pt]
+    ([xshift=1.8cm, yshift=-6.2cm]current page.north west)
+    rectangle
+    ([xshift=-1.8cm, yshift=3.2cm]current page.south east);
+  % Borde izquierdo coloreado
+  \fill[secondary]
+    ([xshift=1.8cm, yshift=-6.2cm]current page.north west)
+    rectangle
+    ([xshift=2.3cm, yshift=3.2cm]current page.south east);
+  % Circulo decorativo
+  \fill[white, opacity=0.08]
+    ([xshift=-3.5cm, yshift=-3.5cm]current page.north east) circle (3.5cm);
+  \fill[white, opacity=0.05]
+    ([xshift=-1cm, yshift=-1cm]current page.north east) circle (2cm);
+\end{tikzpicture}
+
+\vspace*{2cm}
+
+\begin{center}
+
+{\large\color{white}\textbf{PROYECTO DE CIENCIA DE DATOS}}\\[0.4em]
+{\normalsize\color{white!70!primary}Analisis Exploratorio y Perfilamiento de Datos}
+
+\vspace{2.5cm}
+
+{\fontsize{30}{36}\selectfont\bfseries\color{primary} Reporte de Data Data wrangling}
+
+\vspace{0.5em}
+\textcolor{secondary}{\rule{10cm}{2pt}}
+\vspace{0.4em}
+
+{\Large\color{darkgray}\textit{Data Warehouse \textbf{StatsBomb Open Data}}}\\[0.2em]
+{\large\color{secondary}\textbf{Auditoría de Tablas Dimensionales y Hechos}}
+
+\vspace{2.5cm}
+
+\begin{tcolorbox}[
+  width=15cm,
+  colback=lightgray,
+  colframe=primary,
+  boxrule=1.2pt,
+  arc=6pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt
+]
+\centering
+\begin{tabular}{@{}rl@{}}
+  \color{darkgray}\textbf{Alumno:}             & \color{primary} Sergio Sebastian Santos Mena Quispe \\[5pt]
+  \color{darkgray}\textbf{Docente:}              & \color{primary}ANA MARIA CUADROS VALDIVIA\\[5pt]
+  \color{darkgray}\textbf{Profundidad:}         & \color{primary} Análisis de Tipos, Clases y Nulos \\[5pt]
+  \color{darkgray}\textbf{Fecha de Reporte:}    & \color{primary} \today \\
+\end{tabular}
+\end{tcolorbox}
+
+\vspace{3cm}
+
+{\normalsize\color{white}\textbf{Ingeniería de Datos $\cdot$ Normalización $\cdot$ Analítica Avanzada}}
+
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+% =========================
+\section{Introducción}
+
+Este documento presenta una auditoría descriptiva paso a paso de todas las tablas que componen el \textbf{Modelo Dimensional} derivado de los datos crudos de StatsBomb. El ecosistema ha sido diseñado en una arquitectura de Esquema Estrella, separando claramente:
+
+\begin{enumerate}
+    \item \textbf{Dimensiones (Maestros):} Catálogos únicos descriptivos (Equipos, Mánagers, Competiciones).
+    \item \textbf{Tablas Puente (Bridges):} Tablas para resolver cardinalidades de muchos a muchos.
+    \item \textbf{Tablas de Hechos (Facts):} El registro histórico y transaccional masivo de partidos, alineaciones, movimientos espaciales y eventos milimétricos.
+\end{enumerate}
+
+Para cada tabla, exploraremos a detalle sus columnas, los tipos de datos en Pandas (\texttt{dtype}), su clase original en Python, porcentajes de nulidad, y estadísticas de distribución con ejemplos reales extraídos directamente de los datos.
+
+% =========================
+\section{Tablas}
+
+Las tablas dimensionales proveen el contexto. Su característica principal es que no contienen filas completamente duplicadas (0\%) y actúan como diccionarios centrales.
+\subsection{Tabla: \texttt{competition}}
+
+\textbf{Propósito:} Contiene el catálogo único de ligas y torneos internacionales disponibles en el conjunto de datos. (21 registros).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{competition\_id} & int64 \newline (int) & 0\% & Identificador único de cada competición. Presenta valores distribuidos entre distintos rangos numéricos debido a la integración de múltiples fuentes y temporadas. \newline \textbf{Min:} 2, \textbf{Max:} 1470 \newline \textit{Ejemplos:} 9, 1267, 16 \\
+
+\rowcolor{tablerow}
+\texttt{country\_name} & str \newline (str) & 0\% & Variable categórica que representa la región o país asociado a la competición. Predominan competiciones europeas e internacionales. \newline \textbf{Únicos:} 13 \newline \textit{Ejemplos:} Germany, Africa, Europe \\
+
+\rowcolor{tablealt}
+\texttt{competition\_name} & str \newline (str) & 0\% & Nombre oficial de la competición o torneo. Incluye ligas nacionales, copas continentales y torneos internacionales. \newline \textbf{Únicos:} 21 \newline \textit{Ejemplos:} Copa America, Copa del Rey \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado:} 
+La distribución de regiones y países (\texttt{country\_name}) evidencia una fuerte presencia de competiciones europeas, destacando especialmente \textit{Europe} y \textit{Spain}. También se observan registros internacionales y representación de otras regiones como América, África y Asia.
+
+\begin{center}
+\begin{tabular}{lc}
+\rowcolor{tableheader} \thead{country\_name} & \thead{Frecuencia} \\
+
+\rowcolor{tablealt} International & 11 \\
+\rowcolor{tablerow} Italy & 2 \\
+\rowcolor{tablealt} Africa & 1 \\
+\rowcolor{tablerow} Argentina & 2 \\
+\rowcolor{tablealt} South America & 1 \\
+\rowcolor{tablerow} Germany & 2 \\
+\rowcolor{tablealt} India & 1 \\
+\rowcolor{tablerow} Europe & 23 \\
+\rowcolor{tablealt} France & 3 \\
+\rowcolor{tablerow} Spain & 21 \\
+\rowcolor{tablealt} England & 5 \\
+\rowcolor{tablerow} United States of America & 2 \\
+\rowcolor{tablealt} North and Central America & 1 \\
+
+\end{tabular}
+\end{center}
+
+\vspace{0.3cm}
+
+Asimismo, al analizar la relación entre países y competiciones (\texttt{competition\_name}), se observa que las ligas y torneos con mayor frecuencia son \textit{La Liga} y \textit{Champions League}, reflejando una concentración importante de datos en competiciones europeas de alto nivel.
+
+\begin{center}
+\small
+\begin{tabular}{llc}
+\rowcolor{tableheader} 
+\thead{country\_name} & \thead{competition\_name} & \thead{Frecuencia} \\
+
+\rowcolor{tablealt} England & Premier League & 2 \\
+\rowcolor{tablerow} Europe & UEFA Europa League & 1 \\
+\rowcolor{tablealt} Germany & 1. Bundesliga & 2 \\
+\rowcolor{tablerow} Europe & UEFA Euro & 2 \\
+\rowcolor{tablealt} International & FIFA U20 World Cup & 1 \\
+\rowcolor{tablerow} International & FIFA World Cup & 8 \\
+\rowcolor{tablealt} Spain & La Liga & 18 \\
+\rowcolor{tablerow} International & Women's World Cup & 2 \\
+\rowcolor{tablealt} Spain & Copa del Rey & 3 \\
+\rowcolor{tablerow} Europe & UEFA Women's Euro & 2 \\
+\rowcolor{tablealt} India & Indian Super league & 1 \\
+\rowcolor{tablerow} Africa & African Cup of Nations & 1 \\
+\rowcolor{tablealt} Europe & Champions League & 18 \\
+\rowcolor{tablerow} United States of America & Major League Soccer & 1 \\
+\rowcolor{tablealt} United States of America & NWSL & 1 \\
+\rowcolor{tablerow} North and Central America & North American League & 1 \\
+\rowcolor{tablealt} England & FA Women's Super League & 3 \\
+\rowcolor{tablerow} Argentina & Liga Profesional & 2 \\
+\rowcolor{tablealt} South America & Copa America & 1 \\
+\rowcolor{tablerow} Italy & Serie A & 2 \\
+\rowcolor{tablealt} France & Ligue 1 & 3 \\
+
+\end{tabular}
+\end{center}
+
+\subsection{Tabla: \texttt{season}}
+
+\textbf{Propósito:} Identifica todas las temporadas temporales mapeadas (48 registros). 
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{season\_id} & int64 \newline (int) & 0\% & Identificador único asignado a cada temporada. Los valores cubren distintas épocas y competiciones, reflejando una amplia diversidad temporal dentro del dataset. \newline \textbf{Min:} 1, \textbf{Max:} 315 \newline \textit{Ejemplos:} 281, 27, 107 \\
+
+\rowcolor{tablerow}
+\texttt{season\_name} & str \newline (str) & 0\% & Representa el nombre descriptivo de la temporada deportiva. Incluye formatos anuales y multianuales dependiendo de la competición. \newline \textbf{Únicos:} 48 \newline \textit{Ejemplos:} 2023/2024, 2015/2016, 2023 \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\vspace{0.3cm}
+
+Adicionalmente, se identificó que las temporadas pueden clasificarse en formatos de un solo año o de dos años consecutivos (por ejemplo, \texttt{2023/2024}). La mayoría de las competiciones registradas abarcan dos años calendario.
+
+\begin{center}
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{Tipo de temporada} & \thead{Cantidad} \\
+
+\rowcolor{tablealt}
+Temporadas de dos años (\texttt{YYYY/YYYY}) & 32 \\
+
+\rowcolor{tablerow}
+Temporadas de un solo año (\texttt{YYYY}) & 16 \\
+
+\end{tabular}
+\end{center}
+
+\subsection{Tabla: \texttt{team}}
+
+\textbf{Propósito:} Consolida a los 312 equipos distintos que han participado en los eventos, clasificando su rama (género) y país de origen.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador único asignado a cada equipo participante. Los valores presentan una amplia variabilidad debido a la integración de equipos de múltiples competiciones y países. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \newline \textit{Ejemplos:} 904, 190, 184 \\
+
+\rowcolor{tablerow}
+\texttt{team\_name} & str \newline (str) & 0\% & Nombre oficial del equipo registrado en los eventos deportivos. Incluye clubes profesionales y selecciones nacionales. \newline \textbf{Únicos:} 308 \newline \textit{Ejemplos:} Bayer Leverkusen, Union Berlin \\
+
+\rowcolor{tablealt}
+\texttt{gender} & str \newline (str) & 0\% & Clasifica la rama deportiva del equipo según el género de la competición. Se identifican categorías masculinas y femeninas. \newline \textbf{Únicos:} 2 \newline \textit{Ejemplos:} male, female \\
+
+\rowcolor{tablerow}
+\texttt{country\_id} & int64 \newline (int) & 0\% & Identificador numérico asociado al país de origen del equipo. Permite relacionar los equipos con entidades geográficas normalizadas. \newline \textbf{Min:} 3, \textbf{Max:} 255 \newline \textit{Ejemplos:} 85, 85 \\
+
+\rowcolor{tablealt}
+\texttt{country\_name} & str \newline (str) & 0\% & Nombre del país asociado al equipo. Existe una amplia diversidad geográfica con representación de múltiples continentes y ligas internacionales. \newline \textbf{Únicos:} 89 \newline \textit{Ejemplos:} Germany, Spain \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado:}
+Podemos observar que aunque hay 312 \texttt{team\_id} únicos, hay 308 \texttt{team\_name} únicos. Esto sugiere que 4 nombres de equipos están duplicados pero pertenecen a IDs distintos (probablemente filiales o equipos homónimos en distintas ligas). La rama masculina domina el dataset:
+\subsection{Tabla: \texttt{team\_groups}}
+
+\textbf{Propósito:} Asigna a qué grupo competitivo o conferencia pertenece un equipo en una temporada dada.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{competition\_id} & int64 \newline (int) & 0\% & Identificador de la competición asociada al grupo del equipo. Permite relacionar la estructura de grupos con torneos específicos. \newline \textbf{Min:} 2, \textbf{Max:} 1470 \newline \textit{Ejemplos:} 9, 9 \\
+
+\rowcolor{tablerow}
+\texttt{season\_id} & int64 \newline (int) & 0\% & Identificador de la temporada en la cual el equipo participa dentro del grupo o conferencia correspondiente. \newline \textbf{Min:} 1, \textbf{Max:} 315 \newline \textit{Ejemplos:} 281, 281 \\
+
+\rowcolor{tablealt}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador único del equipo asignado a un grupo competitivo específico. Facilita el modelado de estructuras de torneo segmentadas. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \newline \textit{Ejemplos:} 904, 190 \\
+
+\rowcolor{tablerow}
+\texttt{group} & str \newline (str) & \textcolor{rednull}{\textbf{5.56\%}} & Variable categórica que representa el grupo, zona o conferencia donde participa el equipo. Incluye formatos de torneos internacionales y ligas con divisiones regionales. \newline \textbf{Nulos:} 53 \newline \textbf{Únicos:} 20 \newline \textit{Ejemplos:} None, Group C, Eastern Conference \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado:} 
+La existencia de 53 valores nulos (5.56\%) y una alta presencia de registros con el valor \texttt{None} evidencia que gran parte de las competiciones del dataset utilizan un formato de liga general o sistema todos-contra-todos, sin subdivisiones por grupos. En contraste, los valores como \textit{Group C} o \textit{Eastern Conference} corresponden a torneos con fases grupales o conferencias regionales.
+
+\begin{center}
+\begin{tabular}{lc}
+\rowcolor{tableheader} \thead{Género del Equipo (\texttt{gender})} & \thead{Cantidad} \\
+\rowcolor{tablealt} male (Masculino) & 246 \\
+\rowcolor{tablerow} female (Femenino) & 66 \\
+\end{tabular}
+\end{center}
+
+\subsection{Tabla: \texttt{manager}}
+
+\textbf{Propósito:} Maestro de los 557 entrenadores tácticos registrados.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{manager\_id} & int64 \newline (int) & 0\% & Identificador único asignado a cada entrenador registrado en el sistema. Los valores abarcan múltiples competiciones y periodos históricos. \newline \textbf{Min:} 2, \textbf{Max:} 1007078 \newline \textit{Ejemplos:} 1000310, 4057 \\
+
+\rowcolor{tablerow}
+\texttt{manager\_name} & str \newline (str) & 0\% & Nombre completo del entrenador responsable de la dirección táctica de un equipo. Incluye entrenadores de clubes y selecciones nacionales. \newline \textbf{Únicos:} 557 \newline \textit{Ejemplos:} Xabier Alonso Olano, Ole Werner \\
+
+\rowcolor{tablealt}
+\texttt{dob} & str \newline (str) & \textcolor{rednull}{1.26\%} & Fecha de nacimiento del entrenador en formato ISO (\texttt{YYYY-MM-DD}). Presenta un bajo porcentaje de valores faltantes. \newline \textbf{Nulos:} 7 \newline \textit{Ejemplos:} 1981-11-25, 1988-05-04 \\
+
+\rowcolor{tablerow}
+\texttt{country\_id} & int64 \newline (int) & 0\% & Identificador numérico asociado al país de origen o nacionalidad del entrenador. Facilita la normalización geográfica de los registros. \newline \textbf{Min:} 4, \textbf{Max:} 253 \newline \textit{Ejemplos:} 214, 85 \\
+
+\rowcolor{tablealt}
+\texttt{country\_name} & str \newline (str) & 0\% & País asociado al entrenador. Se observa una amplia diversidad internacional de nacionalidades dentro del conjunto de datos. \newline \textbf{Únicos:} 70 \newline \textit{Ejemplos:} Spain, Germany, Croatia \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+
+
+\subsection{Tabla: \texttt{manager\_team\_match\_bridge}}
+
+\textbf{Propósito:} Relaciona a cada entrenador (manager) con un equipo en el contexto exacto de un partido, capturando su rol como local o visitante (6,774 filas).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador único del partido asociado al entrenador y equipo correspondiente. Permite enlazar la información táctica con eventos específicos del encuentro. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \newline \textit{Ejemplos:} 3895302, 3895292 \\
+
+\rowcolor{tablerow}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador del equipo dirigido por el entrenador durante el partido registrado. Facilita la relación entre entidades deportivas y encuentros específicos. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \newline \textit{Ejemplos:} 904, 176 \\
+
+\rowcolor{tablealt}
+\texttt{manager\_id} & int64 \newline (int) & 0\% & Identificador del entrenador asociado al partido y equipo correspondiente. Permite modelar cambios de entrenador a lo largo de distintas temporadas y clubes. \newline \textbf{Min:} 2, \textbf{Max:} 1007078 \newline \textit{Ejemplos:} 1000310, 4057 \\
+
+\rowcolor{tablerow}
+\texttt{role} & str \newline (str) & 0\% & Indica la condición del equipo dentro del partido, diferenciando entre local y visitante. Se trata de una variable categórica binaria. \newline \textbf{Únicos:} 2 \newline \textit{Ejemplos:} home, away \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado:} La columna \texttt{role} presenta una distribución perfectamente balanceada entre las categorías \textit{home} y \textit{away}, con 3,387 registros para cada una. Esto evidencia consistencia estructural en la representación de entrenadores por partido, ya que cada encuentro posee exactamente un entrenador local y uno visitante.
+\subsection{Tabla: \texttt{stadium}}
+
+\textbf{Propósito:} Registra 278 estadios a nivel mundial.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{id} & float64 \newline (float) & \textcolor{orangenull}{0.36\%} & Identificador único asignado a cada estadio registrado. Presenta una pequeña cantidad de valores faltantes debido a información incompleta en algunas sedes. \newline \textbf{Nulos:} 1 \newline \textbf{Min:} 2.0, \textbf{Max:} 1001990.0 \\
+
+\rowcolor{tablerow}
+\texttt{name} & str \newline (str) & \textcolor{orangenull}{0.36\%} & Nombre oficial del estadio donde se disputaron los encuentros deportivos. Incluye estadios de clubes y sedes internacionales. \newline \textbf{Nulos:} 1 \newline \textit{Ejemplos:} BayArena, Deutsche Bank Park \\
+
+\rowcolor{tablealt}
+\texttt{country\_id} & float64 \newline (float) & \textcolor{orangenull}{0.36\%} & Identificador numérico asociado al país donde se ubica el estadio. Facilita la normalización geográfica de las sedes deportivas. \newline \textbf{Nulos:} 1 \newline \textbf{Min:} 11.0, \textbf{Max:} 249.0 \\
+
+\rowcolor{tablerow}
+\texttt{country\_name} & str \newline (str) & \textcolor{orangenull}{0.36\%} & País donde se encuentra ubicado el estadio. Predominan sedes europeas y norteamericanas dentro del conjunto de datos. \newline \textbf{Nulos:} 1 \newline \textit{Ejemplos:} Germany, Spain \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\vspace{0.3cm}
+
+\textbf{Análisis detallado:} 
+La distribución geográfica de los estadios muestra una fuerte concentración en Europa, especialmente en Inglaterra, España, Francia y Alemania. También destaca la presencia de estadios en Estados Unidos y otros países de distintos continentes, evidenciando la diversidad internacional de las competiciones analizadas.
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{country\_name} & \thead{Cantidad de estadios} \\
+
+\rowcolor{tablealt} England & 60 \\
+\rowcolor{tablerow} Spain & 46 \\
+\rowcolor{tablealt} France & 29 \\
+\rowcolor{tablerow} Germany & 28 \\
+\rowcolor{tablealt} United States of America & 27 \\
+\rowcolor{tablerow} Italy & 17 \\
+\rowcolor{tablealt} Russia & 12 \\
+\rowcolor{tablerow} Switzerland & 8 \\
+\rowcolor{tablealt} Australia & 8 \\
+\rowcolor{tablerow} Qatar & 8 \\
+\rowcolor{tablealt} Côte d'Ivoire & 6 \\
+\rowcolor{tablerow} New Zealand & 3 \\
+\rowcolor{tablealt} India & 3 \\
+\rowcolor{tablerow} Mexico & 2 \\
+\rowcolor{tablealt} Argentina & 2 \\
+\rowcolor{tablerow} Wales & 2 \\
+\rowcolor{tablealt} Netherlands & 2 \\
+\rowcolor{tablerow} NULL & 1 \\
+\rowcolor{tablealt} Denmark & 1 \\
+\rowcolor{tablerow} Hungary & 1 \\
+\rowcolor{tablealt} Ukraine & 1 \\
+\rowcolor{tablerow} Monaco & 1 \\
+\rowcolor{tablealt} Portugal & 1 \\
+\rowcolor{tablerow} Sweden & 1 \\
+\rowcolor{tablealt} Romania & 1 \\
+\rowcolor{tablerow} Greece & 1 \\
+\rowcolor{tablealt} Turkey & 1 \\
+\rowcolor{tablerow} Chile & 1 \\
+\rowcolor{tablealt} Azerbaijan & 1 \\
+\rowcolor{tablerow} Serbia & 1 \\
+\rowcolor{tablealt} Japan & 1 \\
+\rowcolor{tablerow} Scotland & 1 \\
+
+\end{tabular}
+\end{center}
+% =========================
+
+
+
+% =========================
+\newpage
+\subsection{Tabla: \texttt{matches}}
+
+\textbf{Propósito:} Es el registro transaccional maestro de encuentros deportivos. Documenta el resultado y la metadata de los 3,464 partidos procesados.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{4.5cm} C{2.5cm} C{0.8cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador único de cada partido dentro del sistema. Permite rastrear encuentros a lo largo de distintas competiciones y temporadas. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \\
+
+\rowcolor{tablerow}
+\texttt{match\_date} & datetime64 \newline (Timestamp) & 0\% & Fecha en la que se disputó el partido. Cubre un amplio rango histórico que permite análisis longitudinal del fútbol desde 1958 hasta 2025. \newline \textbf{Min:} 1958-06-24 \newline \textbf{Max:} 2025-07-27 \\
+
+\rowcolor{tablealt}
+\texttt{kick\_off} & object \newline (time) & \textcolor{orangenull}{0.14\%} & Hora de inicio del partido. Presenta un pequeño porcentaje de valores faltantes debido a registros incompletos en encuentros históricos. \newline \textbf{Nulos:} 5 \newline \textit{Ejemplos:} 17:30:00, 15:30:00 \\
+
+\rowcolor{tablerow}
+\texttt{match\_datetime} & datetime64 \newline (Timestamp) & \textcolor{orangenull}{0.14\%} & Marca temporal completa del inicio del encuentro (fecha y hora). Útil para análisis temporal más preciso. \newline \textbf{Nulos:} 5 \newline \textbf{Min:} 1958-06-24 21:00:00 \\
+
+\rowcolor{tablealt}
+\texttt{competition\_id} & int64 \newline (int) & 0\% & Identificador de la competición asociada al partido. Permite segmentar encuentros por torneos o ligas específicas. \newline \textbf{Min:} 2, \textbf{Max:} 1470 \\
+
+\rowcolor{tablerow}
+\texttt{season\_id} & int64 \newline (int) & 0\% & Identificador de la temporada en la que se disputó el partido. Facilita el análisis temporal de rendimiento por ciclo competitivo. \newline \textbf{Min:} 1, \textbf{Max:} 315 \\
+
+\rowcolor{tablealt}
+\texttt{home\_team\_id} & int64 \newline (int) & 0\% & Identificador del equipo local en el partido. Permite analizar rendimiento en condición de local. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablerow}
+\texttt{away\_team\_id} & int64 \newline (int) & 0\% & Identificador del equipo visitante. Complementa el análisis de enfrentamientos directos entre equipos. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablealt}
+\texttt{stadium\_id} & float64 \newline (float) & \textcolor{orangenull}{0.29\%} & Identificador del estadio donde se disputó el encuentro. Presenta pocos valores nulos por registros históricos incompletos. \newline \textbf{Nulos:} 10 \newline \textbf{Min:} 2.0, \textbf{Max:} 1001990.0 \\
+
+\rowcolor{tablerow}
+\texttt{home\_score} & int64 \newline (int) & 0\% & Goles anotados por el equipo local. Permite analizar desempeño ofensivo en condición de local. \newline \textbf{Mean:} 1.60 \newline \textbf{Ceros:} 847 partidos \\
+
+\rowcolor{tablealt}
+\texttt{away\_score} & int64 \newline (int) & 0\% & Goles anotados por el equipo visitante. Útil para evaluar rendimiento ofensivo fuera de casa. \newline \textbf{Mean:} 1.26 \newline \textbf{Ceros:} 1104 partidos \\
+
+\rowcolor{tablerow}
+\texttt{match\_week} & int64 \newline (int) & 0\% & Semana de competición en la que se disputó el partido. Permite análisis de rendimiento a lo largo de una temporada. \newline \textbf{Min:} 0, \textbf{Max:} 38 \newline \textbf{Mean:} 15.49 \\
+
+\rowcolor{tablealt}
+\texttt{match\_status} & str \newline (str) & 0\% & Estado del partido dentro del sistema. En este dataset todos los registros corresponden a partidos disponibles. \newline \textbf{Únicos:} 1 (available) \\
+
+\rowcolor{tablerow}
+\texttt{match\_status\_360} & str \newline (str) & 0\% & Estado del procesamiento de datos avanzados del partido (tracking 360). Representa la disponibilidad del modelo de datos espaciales del encuentro. Incluye categorías como \textit{unscheduled}, \textit{scheduled} y \textit{available}. \\
+
+\rowcolor{tablealt}
+\texttt{competition\_stage\_id} & int64 \newline (int) & 0\% & Identificador numérico de la fase o etapa dentro de la competición (por ejemplo: fase de grupos, eliminación directa o final). Permite estructurar jerárquicamente el torneo. \newline \textbf{Min:} 1, \textbf{Max:} 158 \newline \textbf{Mean:} 3.26 \\
+
+\rowcolor{tablerow}
+\texttt{competition\_stage\_name} & str \newline (str) & 0\% & Variable categórica que describe la fase específica del torneo en la que se disputa el partido. Incluye etapas de liga regular, fases eliminatorias y finales. \newline \textbf{Únicos:} 12 \newline \textit{Ejemplos:} Regular Season, Group Stage, Final \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\vspace{0.3cm}
+\textbf{Análisis detallado:} 
+La distribución de la variable \texttt{competition\_stage\_name} evidencia una fuerte predominancia de la etapa \textit{Regular Season}, la cual concentra la gran mayoría de los encuentros (2,961 partidos), lo que indica que el dataset está principalmente compuesto por partidos de liga regular. En contraste, las fases eliminatorias como \textit{Quarter-finals}, \textit{Semi-finals} y \textit{Final} presentan una frecuencia significativamente menor, reflejando su naturaleza más selectiva dentro del calendario competitivo.
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{competition\_stage\_name} & \thead{count(1)} \\
+
+\rowcolor{tablealt} Championship - Final & 1 \\
+\rowcolor{tablerow} Regular Season & 2961 \\
+\rowcolor{tablealt} 3rd Place Final & 6 \\
+\rowcolor{tablerow} Apertura & 1 \\
+\rowcolor{tablealt} 1st Group Stage & 5 \\
+\rowcolor{tablerow} Final & 36 \\
+\rowcolor{tablealt} Quarter-finals & 39 \\
+\rowcolor{tablerow} Round of 16 & 57 \\
+\rowcolor{tablealt} Group Stage & 328 \\
+\rowcolor{tablerow} 1st Round & 1 \\
+\rowcolor{tablealt} Semi-finals & 25 \\
+\rowcolor{tablerow} Play-offs - Semi-Finals & 4 \\
+
+\end{tabular}
+\end{center}
+
+\subsection{Tabla: \texttt{match\_lineup\_players}}
+
+\textbf{Propósito:} Registra la convocatoria y alineación de jugadores en cada partido (131,901 filas), permitiendo reconstruir las plantillas utilizadas por equipo y encuentro.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador del partido al que pertenece la alineación del jugador. Permite relacionar la convocatoria con el encuentro específico. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \\
+
+\rowcolor{tablerow}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador del equipo al que pertenece el jugador en el partido correspondiente. Facilita el análisis de alineaciones por club. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablealt}
+\texttt{player\_id} & int64 \newline (int) & 0\% & Identificador único del jugador dentro del sistema. Es la clave principal para análisis de rendimiento individual. \newline \textbf{Min:} 2935, \textbf{Max:} 482216 \\
+
+\rowcolor{tablerow}
+\texttt{player\_name} & str \newline (str) & 0\% & Nombre completo del jugador registrado en la base de datos. Presenta alta cardinalidad debido a la gran diversidad de futbolistas. \newline \textbf{Únicos:} 10808 \newline \textit{Ejemplos:} Magdalena Lilly Eriksson \\
+
+\rowcolor{tablealt}
+\texttt{player\_nickname} & str \newline (str) & \textcolor{rednull}{\textbf{61.94\%}} & Alias o nombre deportivo del jugador. Presenta un alto porcentaje de valores nulos, lo que indica que no todos los jugadores cuentan con un sobrenombre registrado. \newline \textbf{Nulos:} 81,703 \newline \textbf{Top:} Lionel Messi (604), Xavi (267) \\
+
+\rowcolor{tablerow}
+\texttt{jersey\_number} & int64 \newline (int) & 0\% & Número de camiseta asignado al jugador durante el partido. Puede variar entre competiciones y temporadas. \newline \textbf{Min:} 0, \textbf{Max:} 1000 \newline \textbf{Mean:} 16.15 \newline \textbf{Ceros:} 186 \\
+
+\rowcolor{tablealt}
+\texttt{country\_id} & float64 \newline (float) & \textcolor{orangenull}{0.01\%} & Identificador del país de origen del jugador. Presenta un porcentaje mínimo de valores faltantes. \newline \textbf{Nulos:} 13 \newline \textbf{Min:} 3.0, \textbf{Max:} 255.0 \\
+
+\rowcolor{tablerow}
+\texttt{country\_name} & str \newline (str) & \textcolor{orangenull}{0.01\%} & País de nacionalidad del jugador. Predominan futbolistas de España e Inglaterra dentro del conjunto de datos. \newline \textbf{Nulos:} 13 \newline \textbf{Top:} Spain (19805), England (11853) \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado:} 
+La alta proporción de valores nulos en \texttt{player\_nickname} (61.94\%) evidencia que este atributo no es consistente a nivel global y no debe utilizarse como clave de unión en procesos de integración de datos. En su lugar, \texttt{player\_id} y \texttt{player\_name} constituyen identificadores confiables para análisis relacional y consultas SQL. La fuerte concentración de jugadores provenientes de España e Inglaterra refleja la predominancia de estas ligas en el dataset.
+\subsection{Tabla: \texttt{player\_match\_position}}
+
+\textbf{Propósito:} Describe la evolución táctica de cada jugador a lo largo del partido, registrando sus posiciones, cambios y transiciones temporales durante el encuentro (130,889 filas).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador del partido donde ocurre la evolución posicional del jugador. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \\
+
+\rowcolor{tablerow}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador del equipo al que pertenece el jugador durante el partido. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablealt}
+\texttt{player\_id} & int64 \newline (int) & 0\% & Identificador único del jugador en el sistema. \newline \textbf{Min:} 2935, \textbf{Max:} 482216 \\
+
+\rowcolor{tablerow}
+\texttt{position\_id} & int64 \newline (int) & 0\% & Identificador numérico de la posición táctica asignada al jugador. \newline \textbf{Min:} 1, \textbf{Max:} 25 \newline \textbf{Mean:} 12.04 \\
+
+\rowcolor{tablealt}
+\texttt{position} & str \newline (str) & 0\% & Posición táctica ocupada por el jugador dentro del esquema del equipo. Incluye roles ofensivos, defensivos y de mediocampo en distintas variantes. \newline \textbf{Únicos:} 25 \newline \textit{Ejemplos:} Center Forward, Left Wing \\
+
+\rowcolor{tablerow}
+\texttt{from\_time} & str \newline (time) & 0\% & Momento de inicio de una determinada posición dentro del partido. Predomina el inicio en el minuto 00:00, asociado al inicio del encuentro. \newline \textbf{Top:} 00:00 (76227), 45:00 (4332) \\
+
+\rowcolor{tablealt}
+\texttt{to\_time} & str \newline (time) & \textcolor{rednull}{\textbf{58.33\%}} & Momento de finalización de la posición del jugador. Presenta un alto porcentaje de valores nulos debido a eventos aún activos o no cerrados. \newline \textbf{Nulos:} 76,354 \newline \textbf{Top:} 45:00 (4317), 90:00 (99) \\
+
+\rowcolor{tablerow}
+\texttt{from\_period} & int64 \newline (int) & 0\% & Periodo del partido en el que inicia la asignación posicional. Representa segmentos como primer tiempo, segundo tiempo, prórroga o penales. \newline \textbf{Valores:} 1–5 \newline \textbf{Mean:} 1.38 \\
+
+\rowcolor{tablealt}
+\texttt{to\_period} & float64 \newline (float) & \textcolor{rednull}{\textbf{58.33\%}} & Periodo de finalización de la posición. Su nulidad coincide con eventos abiertos o no cerrados en el registro temporal. \newline \textbf{Min:} 1.0, \textbf{Max:} 5.0 \\
+
+\rowcolor{tablerow}
+\texttt{start\_reason} & str \newline (str) & 0\% & Motivo por el cual un jugador inicia una posición o rol dentro del partido. Incluye titularidad, sustituciones y ajustes tácticos. \newline \textbf{Top:} Starting XI (76161), Tactical Shift (30101) \\
+
+\rowcolor{tablealt}
+\texttt{end\_reason} & str \newline (str) & 0\% & Motivo de finalización de la posición del jugador. Refleja cambios tácticos, sustituciones, expulsiones o final del partido. \newline \textbf{Top:} Final Whistle (76354), Tactical Shift (28822) \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+\textbf{Análisis detallado:}  
+La variable \texttt{position} muestra una alta granularidad táctica con 25 roles distintos, abarcando posiciones defensivas, de mediocampo y ofensivas, lo que evidencia la riqueza del modelo táctico utilizado para representar la dinámica del jugador dentro del partido.
+
+\begin{center}
+\small
+\begin{tabular}{l}
+\rowcolor{tableheader}
+\thead{position} \\
+
+\rowcolor{tablealt} Center Forward \\
+\rowcolor{tablerow} Center Back \\
+\rowcolor{tablealt} Left Center Forward \\
+\rowcolor{tablerow} Secondary Striker \\
+\rowcolor{tablealt} Left Midfield \\
+\rowcolor{tablerow} Left Defensive Midfield \\
+\rowcolor{tablealt} Right Wing Back \\
+\rowcolor{tablerow} Right Midfield \\
+\rowcolor{tablealt} Left Center Back \\
+\rowcolor{tablerow} Goalkeeper \\
+\rowcolor{tablealt} Right Center Midfield \\
+\rowcolor{tablerow} Right Defensive Midfield \\
+\rowcolor{tablealt} Right Attacking Midfield \\
+\rowcolor{tablerow} Right Center Back \\
+\rowcolor{tablealt} Left Wing Back \\
+\rowcolor{tablerow} Left Center Midfield \\
+\rowcolor{tablealt} Center Midfield \\
+\rowcolor{tablerow} Left Back \\
+\rowcolor{tablealt} Right Back \\
+\rowcolor{tablerow} Right Center Forward \\
+\rowcolor{tablealt} Center Defensive Midfield \\
+\rowcolor{tablerow} Left Attacking Midfield \\
+\rowcolor{tablealt} Left Wing \\
+\rowcolor{tablerow} Center Attacking Midfield \\
+\rowcolor{tablealt} Right Wing \\
+
+\end{tabular}
+\end{center}
+
+La variable \texttt{from\_period} evidencia la segmentación estándar del fútbol moderno, donde los valores 1 y 2 corresponden al primer y segundo tiempo, mientras que los valores superiores representan prórroga o tanda de penales.
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{from\_period} \\
+
+\rowcolor{tablealt} 4 \\
+\rowcolor{tablerow} 3 \\
+\rowcolor{tablealt} 2 \\
+\rowcolor{tablerow} 1 \\
+\rowcolor{tablealt} 5 \\
+
+\end{tabular}
+\end{center}
+
+Las variables \texttt{start\_reason} y \texttt{end\_reason} muestran que la mayoría de transiciones posicionales están asociadas a la alineación inicial y a cambios tácticos, mientras que sustituciones, expulsiones y el final del partido explican la dinámica de cambios durante el encuentro.
+
+\begin{center}
+\small
+\begin{tabular}{l}
+\rowcolor{tableheader}
+\thead{start\_reason} \\
+
+\rowcolor{tablealt} Substitution - On (Off Camera) \\
+\rowcolor{tablerow} Player On \\
+\rowcolor{tablealt} Substitution - On (Injury) \\
+\rowcolor{tablerow} Tactical Shift \\
+\rowcolor{tablealt} Starting XI \\
+\rowcolor{tablerow} Substitution - On (Tactical) \\
+\rowcolor{tablealt} Substitution - On \\
+\rowcolor{tablerow} Player On (Off Camera) \\
+
+\end{tabular}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{l}
+\rowcolor{tableheader}
+\thead{end\_reason} \\
+
+\rowcolor{tablealt} Substitution - On (Injury) \\
+\rowcolor{tablerow} Player On \\
+\rowcolor{tablealt} Foul Committed (Second Yellow) \\
+\rowcolor{tablerow} Substitution - Off \\
+\rowcolor{tablealt} Substitution - Off (Off Camera) \\
+\rowcolor{tablerow} Foul Committed (Red Card) \\
+\rowcolor{tablealt} Final Whistle \\
+\rowcolor{tablerow} Player Off (Permanent) \\
+\rowcolor{tablealt} Starting XI \\
+\rowcolor{tablerow} Player Off \\
+\rowcolor{tablealt} Substitution - Off (Tactical) \\
+\rowcolor{tablerow} Substitution - On (Off Camera) \\
+\rowcolor{tablealt} Tactical Shift \\
+\rowcolor{tablerow} Substitution - Off (Injury) \\
+\rowcolor{tablealt} Player Off (Off Camera) \\
+\rowcolor{tablerow} Substitution - On (Tactical) \\
+
+\end{tabular}
+\end{center}
+% =========================
+\newpage
+
+\subsection{Tabla: \texttt{events}}
+
+\textbf{Propósito:} La tabla más pesada e importante (\textbf{12,185,465 filas}). Rastrea pases, regates, presiones, intercepciones y cualquier evento temporal milisegundo a milisegundo, vinculando la posesión, el patrón de juego y coordenadas espaciales.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{4.3cm} C{2.5cm} C{0.8cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablerow}
+\texttt{event\_id} & str \newline (str) & 0\% & Identificador único del evento (llave primaria absoluta del sistema). \newline \textbf{Únicos:} 12,185,465 \\
+
+\rowcolor{tablealt}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador del partido asociado al evento. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \\
+
+\rowcolor{tablerow}
+\texttt{index} & int64 \newline (int) & 0\% & Orden secuencial del evento dentro del partido. \newline \textbf{Min:} 1, \textbf{Max:} 5190, \textbf{Mean:} 1781.46 \\
+
+\rowcolor{tablealt}
+\texttt{period} & int64 \newline (int) & 0\% & Periodo del partido en el que ocurre el evento (1–5: tiempo regular, prórroga y penales). \newline \textbf{Min:} 1, \textbf{Max:} 5 \\
+
+\rowcolor{tablerow}
+\texttt{timestamp} & str \newline (str) & 0\% & Marca temporal exacta del evento dentro del partido. \newline \textbf{Únicos:} 2,777,705 \\
+
+\rowcolor{tablealt}
+\texttt{minute} & int64 \newline (int) & 0\% & Minuto del partido en el que ocurre el evento. \newline \textbf{Min:} 0, \textbf{Max:} 139, \textbf{Mean:} 45.10 \\
+
+\rowcolor{tablerow}
+\texttt{second} & int64 \newline (int) & 0\% & Segundo exacto dentro del minuto del evento. \newline \textbf{Min:} 0, \textbf{Max:} 59, \textbf{Mean:} 29.28 \\
+
+\rowcolor{tablealt}
+\texttt{event\_type\_id} & int64 \newline (int) & 0\% & Identificador numérico del tipo de evento. \newline \textbf{Min:} 2, \textbf{Max:} 43, \textbf{Mean:} 32.13 \\
+
+\rowcolor{tablerow}
+\texttt{event\_type\_name} & str \newline (str) & 0\% & Tipo de acción realizada (pase, recepción, tiro, etc.). \newline \textbf{Únicos:} 35 \newline \textit{Top:} Pass, Ball Receipt* \\
+
+\rowcolor{tablealt}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador del equipo que ejecuta el evento. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablerow}
+\texttt{team\_name} & str \newline (str) & 0\% & Nombre del equipo asociado al evento. \newline \textbf{Únicos:} 308 \\
+
+\rowcolor{tablealt}
+\texttt{possession} & int64 \newline (int) & 0\% & Identificador de la secuencia de posesión del balón. \newline \textbf{Min:} 1, \textbf{Max:} 302, \textbf{Mean:} 95.38 \\
+
+\rowcolor{tablerow}
+\texttt{poss...team\_id} & int64 \newline (int) & 0\% & Equipo que controla la posesión durante la secuencia. \newline \textbf{Min:} 1, \textbf{Max:} 29167, \textbf{Mean:} 698.59 \\
+
+\rowcolor{tablealt}
+\texttt{play\_pattern\_id} & int64 \newline (int) & 0\% & Identificador del patrón de juego del evento. \newline \textbf{Min:} 1, \textbf{Max:} 9 \\
+
+\rowcolor{tablerow}
+\texttt{play...\_name} & str \newline (str) & 0\% & Tipo de patrón de juego asociado al evento. \newline \textbf{Únicos:} 9 \newline \textit{Top:} Regular Play (5.39M) \\
+
+\rowcolor{tablealt}
+\texttt{duration} & float64 \newline (float) & \textcolor{rednull}{\textbf{26.26\%}} & Duración del evento en segundos; valores negativos o nulos indican inconsistencias o eventos instantáneos. \newline \textbf{Min:} -2660.41, \textbf{Max:} 1746.58 \\
+
+\rowcolor{tablerow}
+\texttt{x} & float64 \newline (float) & \textcolor{orangenull}{0.75\%} & Coordenada longitudinal del evento en el campo de juego. \newline \textbf{Min:} 0.1, \textbf{Max:} 120.9, \textbf{Mean:} 58.93 \\
+
+\rowcolor{tablealt}
+\texttt{y} & float64 \newline (float) & \textcolor{orangenull}{0.75\%} & Coordenada lateral del evento en el campo de juego. \newline \textbf{Min:} 0.1, \textbf{Max:} 80.8, \textbf{Mean:} 40.00 \\
+
+\rowcolor{tablerow}
+\texttt{end\_x} & float64 \newline (float) & \textcolor{orangenull}{0.75\%} & Coordenada longitudinal del evento en el campo de juego. \newline \\
+
+\rowcolor{tablealt}
+\texttt{end\_y} & float64 \newline (float) & \textcolor{orangenull}{0.75\%} & Coordenada lateral del evento en el campo de juego. \newline \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Análisis detallado de Eventos (\texttt{events}):}
+
+La distribución de tipos de evento confirma que el fútbol se estructura principalmente en torno a acciones de progresión y control del balón, donde destacan los eventos de pase y recepción como núcleo del juego.
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{event\_type\_name} & \thead{count} \\
+
+\rowcolor{tablealt} Pass & 3,386,808 \\
+\rowcolor{tablerow} Carry & 2,631,852 \\
+\rowcolor{tablealt} Ball Receipt* & 3,166,415 \\
+\rowcolor{tablerow} Pressure & 1,113,488 \\
+\rowcolor{tablealt} Clearance & 158,962 \\
+\rowcolor{tablerow} Block & 132,309 \\
+\rowcolor{tablealt} Dribble & 122,013 \\
+\rowcolor{tablerow} Interception & 79,623 \\
+\rowcolor{tablealt} Dispossessed & 88,783 \\
+\rowcolor{tablerow} Foul Committed & 100,481 \\
+\rowcolor{tablealt} Foul Won & 95,569 \\
+\rowcolor{tablerow} Shot & 88,000 \\
+\rowcolor{tablealt} Duel & 257,785 \\
+\rowcolor{tablerow} Goal Keeper & 106,546 \\
+\rowcolor{tablealt} Ball Recovery & 366,560 \\
+\rowcolor{tablerow} Miscontrol & 99,349 \\
+\rowcolor{tablealt} Dribbled Past & 76,259 \\
+\rowcolor{tablerow} Substitution & 21,508 \\
+\rowcolor{tablealt} Half End & 14,124 \\
+\rowcolor{tablerow} Half Start & 14,124 \\
+\rowcolor{tablealt} Injury Stoppage & 13,884 \\
+\rowcolor{tablerow} 50/50 & 10,491 \\
+\rowcolor{tablealt} Tactical Shift & 8,676 \\
+\rowcolor{tablerow} Starting XI & 6,926 \\
+\rowcolor{tablealt} Shield & 4,644 \\
+\rowcolor{tablerow} Referee Ball-Drop & 4,249 \\
+\rowcolor{tablealt} Player Off & 3,317 \\
+\rowcolor{tablerow} Player On & 3,289 \\
+\rowcolor{tablealt} Camera On & 2,595 \\
+\rowcolor{tablerow} Bad Behaviour & 2,531 \\
+\rowcolor{tablealt} Error & 1,703 \\
+\rowcolor{tablerow} Offside & 1,235 \\
+\rowcolor{tablealt} Camera off & 693 \\
+\rowcolor{tablerow} Own Goal For & 337 \\
+\rowcolor{tablealt} Own Goal Against & 337 \\
+
+\end{tabular}
+\end{center}
+
+La distribución evidencia que el juego está dominado por eventos de progresión como \textit{Pass}, \textit{Carry} y \textit{Ball Receipt*}, los cuales concentran la mayor parte de las interacciones y reflejan la construcción ofensiva del juego.
+
+Eventos defensivos como \textit{Pressure}, \textit{Ball Recovery}, \textit{Block} e \textit{Interception} representan una capa significativa del comportamiento táctico, mostrando la intensidad del juego sin balón.
+
+Finalmente, eventos situacionales como sustituciones, interrupciones, decisiones arbitrales y reanudaciones (e.g., \textit{Substitution}, \textit{Half Start/End}, \textit{Referee Ball-Drop}) tienen menor frecuencia pero son esenciales para estructurar la dinámica temporal
+
+El $26.26\%$ de nulos en `duration` es totalmente normal y obedece a eventos puntuales (ej. un tiro bloqueado o una recepción estática) que no abarcan un lapso de tiempo progresivo.
+\subsection{Tabla: \texttt{event\_tactics\_lineup}}
+
+\textbf{Propósito:} Describe las formaciones numéricas empleadas en el campo y qué jugador ocupa qué vértice geométrico en la formación. (171,622 filas).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{event\_id} & str \newline (str) & 0\% & Identificador único del evento táctico asociado a la alineación del jugador. \newline \textbf{Únicos:} 15602 \newline \textit{Ejemplos:} 0b483cd2-1d36-49a0... \\
+
+\rowcolor{tablerow}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador único del partido al que pertenece la alineación táctica. \newline \textbf{Min:} 7298, \textbf{Max:} 4020846 \\
+
+\rowcolor{tablealt}
+\texttt{team\_id} & int64 \newline (int) & 0\% & Identificador único del equipo dentro del partido. \newline \textbf{Min:} 1, \textbf{Max:} 29167 \\
+
+\rowcolor{tablerow}
+\texttt{formation} & int64 \newline (int) & 0\% & Formación táctica utilizada por el equipo en el evento, codificada numéricamente según el esquema de juego. \newline \textbf{Min:} 343, \textbf{Max:} 312112 \newline \textbf{Mean:} 4739.21 \newline \textit{Ejemplos:} 433 \\
+
+\rowcolor{tablealt}
+\texttt{player\_id} & int64 \newline (int) & 0\% & Identificador único del jugador dentro del sistema de alineaciones tácticas. \newline \textbf{Min:} 2935, \textbf{Max:} 482216 \\
+
+\rowcolor{tablerow}
+\texttt{player\_name} & str \newline (str) & 0\% & Nombre del jugador asignado dentro de la formación táctica. \newline \textbf{Únicos:} 8517 \newline \textit{Ejemplos:} Ellie Roebuck, Abbie McManus \\
+
+\rowcolor{tablealt}
+\texttt{position\_id} & int64 \newline (int) & 0\% & Identificador numérico de la posición táctica ocupada por el jugador dentro de la formación. \newline \textbf{Min:} 1, \textbf{Max:} 25, \textbf{Mean:} 10.40 \\
+
+\rowcolor{tablerow}
+\texttt{position\_name} & str \newline (str) & 0\% & Nombre de la posición táctica asignada al jugador dentro del sistema de formación. \newline \textbf{Ejemplos:} Goalkeeper, Left Center Back \\
+
+\rowcolor{tablealt}
+\texttt{jersey\_number} & int64 \newline (int) & 0\% & Número de dorsal asignado al jugador dentro del equipo en el contexto del partido. \newline \textbf{Min:} 0, \textbf{Max:} 1000, \textbf{Ceros:} 484 \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Distribución de formaciones tácticas (\texttt{formation}):}
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\rowcolor{tableheader}
+\thead{Formation} & \thead{Count} \\
+\rowcolor{tablealt} 4231 & 49225 \\
+\rowcolor{tablerow} 433 & 34419 \\
+\rowcolor{tablealt} 442 & 28721 \\
+\rowcolor{tablerow} 4141 & 10769 \\
+\rowcolor{tablealt} 4411 & 10285 \\
+\rowcolor{tablerow} 41212 & 9218 \\
+\rowcolor{tablealt} 352 & 7557 \\
+\rowcolor{tablerow} 343 & 6171 \\
+\rowcolor{tablealt} 3421 & 4136 \\
+\rowcolor{tablerow} 3412 & 3399 \\
+\rowcolor{tablealt} 3511 & 2288 \\
+\rowcolor{tablerow} 451 & 1903 \\
+\rowcolor{tablealt} 4321 & 1023 \\
+\rowcolor{tablerow} 41221 & 913 \\
+\rowcolor{tablealt} 4222 & 748 \\
+\rowcolor{tablerow} 32221 & 231 \\
+\rowcolor{tablealt} 42211 & 209 \\
+\rowcolor{tablerow} 3142 & 66 \\
+\rowcolor{tablealt} 541 & 66 \\
+\rowcolor{tablerow} 532 & 55 \\
+\rowcolor{tablealt} 4132 & 44 \\
+\rowcolor{tablerow} 5221 & 33 \\
+\rowcolor{tablealt} 3232 & 33 \\
+\rowcolor{tablerow} 32122 & 22 \\
+\rowcolor{tablealt} 42121 & 22 \\
+\rowcolor{tablerow} 4312 & 22 \\
+\rowcolor{tablealt} 4213 & 11 \\
+\rowcolor{tablerow} 312112 & 11 \\
+\rowcolor{tablealt} 31222 & 11 \\
+\rowcolor{tablerow} 41131 & 11 \\
+\end{tabular}
+\end{center}
+
+\textbf{Análisis detallado:}
+La distribución de la variable \texttt{formation} evidencia una clara dominancia de esquemas tácticos estándar del fútbol moderno. La formación \textit{4231} es la más utilizada (49,225 registros), seguida por \textit{433} (34,419) y \textit{442} (28,721), lo que confirma la prevalencia de estructuras equilibradas entre ataque y defensa.
+
+Formaciones intermedias como \textit{4141}, \textit{4411} y \textit{41212} también presentan alta frecuencia, reflejando variantes tácticas derivadas de sistemas base ampliamente adoptados.
+
+En contraste, existe una larga cola de formaciones con muy baja frecuencia (por ejemplo, \textit{312112}, \textit{4213}, \textit{41131}), las cuales representan configuraciones poco convencionales o de uso situacional específico. Esta asimetría en la distribución sugiere una fuerte estandarización táctica en el fútbol profesional, donde un conjunto reducido de formaciones concentra la mayor parte de los partidos.
+
+
+% =========================
+\newpage
+\section{Tablas de Tracking Avanzado (StatsBomb 360)}
+
+Los datasets 360 introducen contexto espacial y métricas avanzadas (conos de visibilidad y posicionamiento dinámico de rivales).
+\subsection{Tabla: \texttt{three\_sixty\_events}}
+
+\textbf{Propósito:} Contiene 1,027,908 registros que vinculan cada evento con su representación espacial en vista 360°, reconstruida mediante técnicas de visión por computadora. Esta tabla almacena la geometría del contexto visual del juego a través del campo \texttt{visible\_area}.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{event\_uuid} & str \newline (str) & 0\% & Identificador único del evento asociado a la reconstrucción 360°. \newline \textbf{Únicos:} 1,027,908 \\
+
+\rowcolor{tablerow}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador del partido al que pertenece el evento. \newline \textbf{Min:} 3,788,741 \newline \textbf{Max:} 4,020,846 \\
+
+\rowcolor{tablealt}
+\texttt{visible\_area} & str \newline (str) & 0\% & Representación geométrica del área visible del campo en el instante del evento. Contiene coordenadas estructuradas como polígonos anidados generados a partir de reconstrucción por visión computacional. \newline \textbf{Únicos:} 701,023 \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+\subsection{Tabla: \texttt{three\_sixty\_freeze\_frame}}
+
+\textbf{Propósito:} Expansión de alta granularidad (\textbf{15,583,891 registros}) donde cada fila representa un jugador visible en el instante de un evento. La tabla almacena la posición espacial (X, Y) de todos los jugadores en el frame, junto con su rol relativo respecto a la jugada: compañero (\texttt{teammate}), jugador protagonista (\texttt{actor}) o portero (\texttt{keeper}).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{3.5cm} C{2.5cm} C{1.5cm} p{7.0cm}}
+\rowcolor{tableheader}
+\thead{Columna} & \thead{Tipo (Clase)} & \thead{Nulos} & \thead{Distribución y Estadísticas} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{event\_uuid} & str \newline (str) & 0\% & Identificador del evento al que pertenece el frame de reconstrucción 360°. \newline \textbf{Únicos:} 1,027,908 \\
+
+\rowcolor{tablerow}
+\texttt{match\_id} & int64 \newline (int) & 0\% & Identificador del partido asociado al evento. \newline \textbf{Min:} 3,788,741 \newline \textbf{Max:} 4,020,846 \\
+
+\rowcolor{tablealt}
+\texttt{x} & float64 \newline (float) & 0\% & Coordenada espacial en el eje X del jugador dentro del campo. \newline \textbf{Min:} -8.28 \newline \textbf{Max:} 129.42 \newline \textbf{Mean:} 64.14 \\
+
+\rowcolor{tablerow}
+\texttt{y} & float64 \newline (float) & 0\% & Coordenada espacial en el eje Y del jugador dentro del campo. \newline \textbf{Min:} -36.00 \newline \textbf{Max:} 117.53 \newline \textbf{Mean:} 40.01 \\
+
+\rowcolor{tablealt}
+\texttt{teammate} & bool \newline (bool) & 0\% & Indicador booleano que señala si el jugador pertenece al mismo equipo del actor del evento. \newline \textbf{True/False balanceado} \\
+
+\rowcolor{tablerow}
+\texttt{actor} & bool \newline (bool) & 0\% & Indicador booleano que identifica al jugador que ejecuta la acción principal del evento. \newline \textbf{True proporción:} baja (jugador protagonista) \\
+
+\rowcolor{tablealt}
+\texttt{keeper} & bool \newline (bool) & 0\% & Indicador booleano que identifica si el jugador es el portero dentro del frame del evento. \newline \textbf{True proporción:} baja (rol especializado) \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+
+
+
+
+\section{Análisis del comportamiento de los datos}
+
+\subsection{Caracterización general del dataset}
+
+Un registro dentro del modelo de datos representa una entidad atómica dentro del dominio del fútbol profesional, es decir, una unidad mínima de información que puede corresponder a un partido, evento, jugador, equipo o relación entre entidades.
+
+El objetivo de este análisis es responder a las siguientes preguntas:
+\begin{itemize}
+    \item ¿Qué representa un registro en cada tabla?
+    \item ¿Cuál es el volumen de datos disponible?
+    \item ¿Es el volumen suficientemente pequeño o grande para su procesamiento?
+    \item ¿Existen problemas de duplicidad de datos?
+\end{itemize}
+
+El dataset está compuesto por múltiples tablas relacionales derivadas de eventos reales de partidos de fútbol, con diferentes niveles de granularidad (desde entidades maestras hasta eventos de alta frecuencia).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{longtable}{T{4.5cm} p{2.2cm} p{2.0cm} p{6.2cm}}
+
+\rowcolor{tableheader}
+\thead{Tabla} & \thead{Registros} & \thead{Tamaño} & \thead{Descripción de lo que representa un registro} \\
+\midrule
+\endfirsthead
+
+\rowcolor{tablealt}
+\texttt{competitions} & 75 & 3 KB & Representa una combinación única de competencia y temporada disponible en StatsBomb. \\
+
+\rowcolor{tablerow}
+\texttt{matches} & 3,464 & 90 KB & Representa un partido de fútbol con toda su información contextual. \\
+
+\rowcolor{tablealt}
+\texttt{team} & 312 & 10.19 KB & Representa un equipo único participante en el conjunto de partidos. \\
+
+\rowcolor{tablerow}
+\texttt{manager} & 557 & 21.91 KB & Representa un entrenador único identificado en los partidos. \\
+
+\rowcolor{tablealt}
+\texttt{stadium} & 278 & 9.95 KB & Representa un estadio único donde se disputan los encuentros. \\
+
+\rowcolor{tablerow}
+\texttt{competition} & 75 & 3 KB & Representa una competición oficial (liga, torneo o copa). \\
+
+\rowcolor{tablealt}
+\texttt{season} & 48 & 2.32 KB & Representa una temporada específica dentro de una competencia. \\
+
+\rowcolor{tablerow}
+\texttt{competition\_team\_group} & 954 & 5.96 KB & Representa la asignación de equipos a una competencia, temporada y grupo. \\
+
+\rowcolor{tablealt}
+\texttt{manager\_team\_match} & 6,774 & 45.52 KB & Representa la relación entre entrenador, equipo y partido. \\
+
+\rowcolor{tablerow}
+\texttt{events} & 12,185,465 & 623.1 MB & Representa un evento individual dentro de un partido (acción de juego). \\
+
+\rowcolor{tablealt}
+\texttt{event\_tactics\_lineup} & 171,622 & 1.49 MB & Representa un jugador dentro del bloque táctico de un evento. \\
+
+\rowcolor{tablerow}
+\texttt{match\_lineup\_players} & 131,901 & 1.01 MB & Representa un jugador incluido en la alineación de un partido. \\
+
+\rowcolor{tablealt}
+\texttt{player\_match\_position} & 130,889 & 0.88 MB & Representa un intervalo de posición de un jugador dentro de un partido. \\
+
+\rowcolor{tablerow}
+\texttt{three\_sixty\_events} & 1,027,908 & 106.5 MB & Representa la reconstrucción espacial 360° de un evento de juego. \\
+
+\rowcolor{tablealt}
+\texttt{three\_sixty\_freeze\_frame} & 15,583,891 & 237.9 MB & Representa la posición de un jugador dentro del freeze frame de un evento 360°. \\
+
+\bottomrule
+\end{longtable}
+\end{center}
+
+\subsection{Análisis de volumen y calidad de datos}
+
+El dataset presenta una distribución altamente heterogénea en términos de volumen. Mientras que las tablas dimensionales contienen pocos registros (decenas o cientos), las tablas de eventos y tracking concentran la mayor carga de datos, especialmente:
+
+\begin{itemize}
+    \item \texttt{events}: más de 12 millones de registros.
+    \item \texttt{three\_sixty\_freeze\_frame}: más de 15 millones de registros.
+\end{itemize}
+
+Esto es coherente con la naturaleza del dominio, donde los eventos deportivos generan datos de alta frecuencia por segundo de juego.
+
+En términos de capacidad computacional, el dataset total se encuentra en el orden de:
+
+\begin{itemize}
+    \item \textbf{Tamaño total aproximado:} $\approx$ 1.1 GB
+\end{itemize}
+
+Este volumen es completamente manejable en entornos modernos de análisis de datos (CPU multicore y RAM superior a 8–16 GB), especialmente considerando el uso de formatos columnares como Parquet y motores como DuckDB.
+
+\subsection{Duplicidad de datos}
+
+No se identifican registros duplicados a nivel estructural en las tablas analizadas. Esto se debe a que:
+
+\begin{itemize}
+    \item Cada tabla está definida con una granularidad clara (evento, partido, jugador o relación).
+    \item Las tablas de relación (bridge tables) mantienen integridad referencial sin replicación innecesaria.
+    \item El uso de identificadores únicos garantiza la trazabilidad de cada entidad.
+\end{itemize}
+
+Por lo tanto, el dataset puede considerarse \textbf{normalizado a nivel lógico}, sin redundancia evidente en los registros base.
+
+\section{Análisis del comportamiento de los datos}
+
+El dataset analizado está compuesto por un conjunto amplio de tablas que representan distintos niveles de abstracción dentro del dominio del fútbol profesional, desde entidades maestras hasta eventos de muy alta granularidad y reconstrucciones espaciales del juego. En este contexto, cada tabla contiene registros que corresponden a entidades reales del sistema deportivo, permitiendo modelar tanto la estructura organizacional como el comportamiento dinámico de los partidos.
+
+En la tabla \texttt{competition} se encontró que cada registro representa una competición o torneo específico, como ligas nacionales o torneos internacionales. Se identificaron 21 registros únicos, lo cual es coherente con su naturaleza como catálogo de referencia. No se evidencian duplicados ni inconsistencias, y su tamaño reducido confirma que se trata de una tabla dimensional estable.
+
+En la tabla \texttt{season}, cada registro representa una temporada específica dentro de una competición. Se encontraron 48 registros únicos, correspondientes a distintos ciclos competitivos. Esta tabla no presenta duplicación de información y mantiene una estructura completamente consistente, lo cual es esperable en datos de tipo histórico-organizacional.
+
+En la tabla \texttt{team}, cada registro corresponde a un equipo de fútbol único. Se identificaron 312 registros, de los cuales 308 corresponden a nombres únicos, lo que indica la existencia de algunos casos puntuales de homonimia o representación de filiales. A pesar de ello, no se observan duplicados estructurales y la integridad de la tabla se mantiene.
+
+En la tabla \texttt{team\_groups}, cada registro representa la asignación de un equipo a un grupo dentro de una competición y temporada específica. Se identificaron 954 registros, reflejando la estructura organizativa de torneos con fase de grupos. Esta tabla presenta una leve proporción de valores nulos en el campo de grupo, lo cual se explica por competiciones que no utilizan este formato competitivo.
+
+En la tabla \texttt{manager}, cada registro representa un entrenador único identificado dentro del sistema. Se encontraron 557 registros sin duplicación, lo que confirma la correcta normalización de esta entidad. Únicamente se observan algunos valores nulos en la fecha de nacimiento, lo cual no afecta su utilidad estructural.
+
+En la tabla \texttt{manager\_team\_match\_bridge}, cada registro representa la relación entre un entrenador, un equipo y un partido específico. Se identificaron 6,774 registros, lo cual es consistente con la variabilidad de cambios técnicos a lo largo de múltiples temporadas. No se detectan duplicaciones, y la tabla mantiene integridad referencial completa.
+
+En la tabla \texttt{stadium}, cada registro representa un estadio único donde se disputan los partidos. Se encontraron 278 registros sin duplicados estructurales. Se detectaron únicamente valores nulos mínimos, lo cual es marginal y no compromete su validez como tabla de referencia.
+
+En la tabla \texttt{matches}, cada registro representa un partido completo de fútbol. Se identificaron 3,464 registros, todos ellos únicos a nivel de identificador. La tabla presenta algunos valores nulos en campos secundarios como horario o estadio, pero la integridad del evento principal se mantiene completamente.
+
+En la tabla \texttt{match\_lineup\_players}, cada registro representa un jugador incluido en la alineación de un partido específico. Se encontraron 131,901 registros, sin evidencia de duplicación estructural. Se observan valores nulos en el alias del jugador, lo cual es esperado debido a la variabilidad en la disponibilidad de datos de identificación.
+
+En la tabla \texttt{player\_match\_position}, cada registro representa el intervalo en el que un jugador ocupa una posición táctica dentro de un partido. Se identificaron 130,889 registros sin duplicados. Se observan valores nulos en campos de finalización de posición, lo cual es consistente con jugadores que permanecen activos durante todo el partido.
+
+En la tabla \texttt{events}, cada registro representa un evento individual dentro de un partido, como un pase, tiro o recuperación. Se encontraron 12,185,465 registros únicos, lo que evidencia un alto nivel de granularidad. No existen duplicaciones, y cada evento está correctamente identificado. Se observan valores nulos en algunos atributos como duración, lo cual es esperado debido a la naturaleza instantánea de ciertos eventos.
+
+En la tabla \texttt{event\_tactics\_lineup}, cada registro representa un jugador dentro de una configuración táctica asociada a un evento específico. Se identificaron 171,622 registros sin duplicación, lo cual refleja la descomposición táctica del juego. La integridad de los datos es completa.
+
+En la tabla \texttt{three\_sixty\_events}, cada registro representa una reconstrucción espacial de un evento del partido en formato 360°. Se encontraron 1,027,908 registros únicos, sin duplicación. Cada registro describe el área visible del campo en un instante específico, lo que permite un análisis espacial detallado del juego.
+
+Finalmente, en la tabla \texttt{three\_sixty\_freeze\_frame}, cada registro representa la posición de un jugador dentro de un instante congelado de un evento 360°. Esta es la tabla de mayor volumen del dataset, con 15,583,891 registros únicos. No se identifican duplicaciones, ya que cada observación corresponde a la posición individual de un jugador dentro de un frame específico.
+
+En conjunto, el análisis del dataset permite concluir que no existen duplicaciones estructurales en ninguna de las tablas. Cada entidad mantiene su unicidad a través de identificadores consistentes o claves compuestas, garantizando la integridad del modelo de datos.
+
+En términos de volumen, el dataset completo ocupa aproximadamente 1.1 GB en formato Parquet. Este tamaño es significativo pero completamente manejable en entornos modernos de análisis de datos con capacidades estándar de CPU multinúcleo y memoria RAM entre 8 y 16 GB. La naturaleza columnar del formato utilizado permite optimizar el acceso y procesamiento de grandes volúmenes de información.
+
+En conclusión, el dataset presenta una estructura altamente coherente, sin redundancia de datos, con una correcta separación entre entidades maestras, relaciones y eventos de alta granularidad. Esto lo convierte en una base de datos adecuada para análisis avanzados, minería de datos y aplicaciones de aprendizaje automático en el dominio del fútbol.
+
+
+
+\section{Tablas prioritarias}
+Las tablas con mayor valor analitico son:
+\begin{itemize}
+  \item \textbf{events\_fact}: nivel evento, con variables de tiempo, tipo de evento, posesion y coordenadas espaciales.
+  \item \textbf{matches\_fact}: nivel partido, con resultados, competencia, temporada, estadio y estado de disponibilidad.
+  \item \textbf{match\_lineup\_players}: nivel jugador-partido, util para analizar presencia, pais y dorsal.
+  \item \textbf{player\_match\_position\_fact}: nivel jugador-posicion-intervalo, clave para lectura tactica.
+  \item \textbf{manager\_team\_match\_bridge}: relacion manager-equipo-partido.
+  \item \textbf{three\_sixty\_freeze\_frame} y \textbf{three\_sixty\_events}: analisis espacial y de cobertura 360.
+\end{itemize}
+
+\section{Metodologia estadistica}
+Para cada variable numerica se usaron medidas de tendencia central y dispersion. Para variables categoricas se usaron frecuencias. Para relaciones entre features numericas se uso correlacion de Pearson y covarianza.
+
+\subsection{Medidas de tendencia central}
+Las definiciones que sustentan el analisis son:
+\[
+\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i
+\]
+\[
+\tilde{x} = \text{mediana}(x)
+\]
+\[
+x_{\mathrm{mode}} = \arg\max_v \; f(v)
+\]
+\[
+G = \left(\prod_{i=1}^{n} x_i\right)^{1/n}, \quad x_i > 0
+\]
+\[
+H = \frac{n}{\sum_{i=1}^{n} \frac{1}{x_i}}, \quad x_i > 0
+\]
+La media aritmetica resume el centro global, la mediana es robusta ante asimetria, la moda identifica el valor mas frecuente, la media geometrica es util para escalas multiplicativas y la armonica penaliza valores altos y resalta magnitudes pequenas.
+
+\subsection{Dispersión}
+La desviacion estandar se definio como:
+\[
+s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}
+\]
+Se acompana con cuartiles, rango intercuartil y boxplots para identificar asimetria y outliers.
+
+\subsection{Correlacion y covarianza}
+La covarianza mide variacion conjunta:
+\[
+\operatorname{cov}(X,Y)=\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})
+\]
+La correlacion de Pearson normaliza la covarianza y queda en el intervalo $[-1,1]$:
+\[
+r_{XY}=\frac{\operatorname{cov}(X,Y)}{s_X s_Y}
+\]
+Esto permite comparar la fuerza de la relacion entre pares de features. En este proyecto la correlacion es mas interpretable que la covarianza, porque la covarianza depende de la escala de las variables.
+
+\section{Criterio de selección de graficos}
+Se eligieron cuatro familias de graficos:
+\begin{itemize}
+  \item Histogramas para ver sesgo, concentracion y colas.
+  \item Boxplots para outliers y simetria.
+  \item Barras para variables categoricas y cardinalidad.
+  \item Heatmaps de correlacion para relaciones lineales entre features numericas.
+\end{itemize}
+
+\section{Interpretacion por tabla}
+
+\subsection{events\_fact}
+Esta es la tabla principal de eventos. Las columnas \texttt{minute}, \texttt{second}, \texttt{period}, \texttt{index} y \texttt{possession} muestran estructura secuencial, por eso su correlacion es alta entre si. No se deben leer como causalidad, sino como dependencia temporal del flujo del partido.
+
+La variable \texttt{duration} es la mas relevante para distribucion: su media, mediana y desviacion estandar muestran sesgo fuerte y presencia de outliers. Por eso la mediana y los percentiles describen mejor el comportamiento tipico que la media sola.
+
+Las columnas \texttt{event\_type\_name} y \texttt{play\_pattern\_name} deben analizarse por frecuencia porque son categoricas. Su interpretacion es operacional: indican que tipos de acciones dominan la muestra.
+
+El heatmap de correlacion en eventos es importante para detectar redundancia. En especial, una correlacion alta entre \texttt{index}, \texttt{minute} y \texttt{possession} confirma que hay estructura de secuencia. La relacion entre \texttt{team\_id} y \texttt{possession\_team\_id} valida coherencia de posesion por equipo.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{events_minute_boxplot.png}
+  \caption{Distribucion de \texttt{duration} en eventos. Sirve para detectar asimetria, colas y valores extremos.}
+\end{figure}
+\subsection{Análisis de correlación entre variables numéricas}
+
+Para comprender las relaciones lineales existentes entre las variables numéricas del conjunto de eventos, se construyó una matriz de correlación utilizando coeficientes de correlación de Pearson. Este análisis permite identificar dependencias, redundancias y posibles problemas de multicolinealidad dentro del conjunto de datos.
+
+Como se observa en la Figura~\ref{fig:correlacion_eventos}, existe una alta correlación entre las variables relacionadas con la temporalidad del evento, tales como \texttt{index}, \texttt{minute}, \texttt{period} y \texttt{possession}. Estas variables presentan coeficientes de correlación superiores a 0.80, alcanzando valores cercanos a 0.97 en algunos casos. Este comportamiento indica que dichas variables están fuertemente asociadas a la progresión temporal del partido y, en muchos casos, representan información redundante desde diferentes perspectivas de la misma dimensión temporal.
+
+Asimismo, la variable \texttt{possession} muestra una alta correlación con las variables de tiempo, lo que sugiere que la dinámica de posesión está estrechamente alineada con la secuencia de eventos en el partido. Esto refuerza la idea de que la estructura del dataset sigue un orden temporal determinístico.
+
+Por otro lado, variables como \texttt{event\_type\_id}, \texttt{team\_id}, \texttt{possession\_team\_id} y \texttt{play\_pattern\_id} presentan correlaciones cercanas a cero con la mayoría de variables continuas. Esto es esperado, ya que dichas variables representan identificadores categóricos codificados numéricamente, por lo que su interpretación no debe ser tratada como cuantitativa.
+
+En cuanto a las variables espaciales \texttt{x} e \texttt{y}, se observa una correlación prácticamente nula con el resto de atributos, lo que indica que la posición dentro del campo es una dimensión independiente respecto al tiempo y al tipo de evento. Esta independencia sugiere que la información espacial aporta variabilidad adicional relevante para el análisis del comportamiento del juego.
+
+Finalmente, se identifica una correlación moderada entre \texttt{event\_type\_id} y \texttt{duration}, lo cual indica que ciertos tipos de eventos tienden a tener duraciones características, aunque esta relación no es suficientemente fuerte como para considerarse determinística.
+
+En conjunto, la matriz de correlación evidencia la existencia de tres estructuras principales dentro del dataset: una dimensión temporal fuertemente redundante, una dimensión categórica discreta y una dimensión espacial independiente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{events_correlation_heatmap.png}
+  \caption{Correlación entre features numéricas de eventos. Se usa para identificar relaciones lineales y redundancia.}
+  \label{fig:correlacion_eventos}
+\end{figure}
+
+
+\subsection{matches\_fact}
+La tabla de partidos organiza el contexto del analisis. Las variables \texttt{home\_score}, \texttt{away\_score}, \texttt{match\_week} y \texttt{competition\_stage\_id} son discretas y concentradas en rangos pequenos. Por eso conviene usar histogramas, cajas y frecuencias, no asumir normalidad.
+
+Las variables \texttt{competition\_id}, \texttt{season\_id}, \texttt{home\_team\_id} y \texttt{away\_team\_id} son llaves de contexto, no magnitudes con interpretacion de distancia. Se incluyen en el analisis porque sirven para cruces con otras tablas, pero su correlacion no debe interpretarse como dependencia sustantiva.
+
+El estado \texttt{match\_status\_360} debe estudiarse por frecuencia porque informa disponibilidad de cobertura 360 y afecta la calidad del resto del analisis espacial.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{matches_home_score_hist.png}
+  \caption{Distribución de \texttt{home\_score}. Permite observar una fuerte concentración en valores bajos (especialmente 0, 1, 2 y 3 goles), así como la presencia de ceros como resultado frecuente.}
+  \label{fig:home_score_distribution}
+\end{figure}
+
+La Figura~\ref{fig:home_score_distribution} muestra que \texttt{home\_score} no sigue una distribución normal, sino una distribución discreta y sesgada a la derecha. La mayor concentración de observaciones se encuentra en valores bajos, principalmente entre 0, 1, 2 y 3 goles del equipo local, con un pico evidente alrededor de 1 gol.
+
+A partir de 4 goles, la frecuencia disminuye de manera pronunciada, mientras que los valores altos de anotación son eventos poco frecuentes y constituyen la cola derecha de la distribución.
+
+En términos analíticos, esto implica que:
+\begin{itemize}
+    \item La mayoría de los partidos presentan un número reducido de goles del equipo local.
+    \item La media aritmética puede resultar poco representativa debido a la sensibilidad a valores extremos en la cola derecha.
+    \item La mediana, la moda y los percentiles describen mejor el comportamiento de la variable.
+    \item Se trata de una variable de conteo discreta, por lo que no es apropiado asumir normalidad ni continuidad.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{matches_match_status_360_bar.png}
+  \caption{Frecuencia de \texttt{match\_status\_360}. Esta variable describe el estado de disponibilidad del dato 360 y no está relacionada con el rendimiento deportivo.}
+  \label{fig:match_status_360}
+\end{figure}
+
+La Figura~\ref{fig:match_status_360} muestra la distribución de la variable \texttt{match\_status\_360}, la cual corresponde a un atributo de calidad y disponibilidad de datos más que a una variable deportiva.
+
+La categoría dominante es \textit{unscheduled}, seguida de \textit{scheduled}. En niveles considerablemente menores se encuentran \textit{available} y, finalmente, \textit{processing}. Este patrón sugiere que una gran proporción de los partidos aún no cuenta con cobertura 360 completamente procesada o sincronizada, mientras que solo una fracción reducida está lista para análisis espacial completo.
+
+En términos analíticos, esta variable puede interpretarse de la siguiente manera:
+
+\begin{itemize}
+    \item \textit{unscheduled} y \textit{scheduled} representan estados previos a la disponibilidad final del dato, asociados a planificación o publicación.
+    \item \textit{available} indica que la información ya está lista para su uso analítico.
+    \item \textit{processing} señala que el dato aún se encuentra en flujo de generación, por lo que puede estar incompleto o sujeto a actualización.
+\end{itemize}
+
+
+\subsection{match\_lineup\_players}
+Esta tabla relaciona jugadores, equipos y partidos. \texttt{jersey\_number} tiene una distribucion discreta con valores anómalos altos; se recomienda boxplot y conteos por rango. \texttt{player\_name} y \texttt{country\_name} se analizan por frecuencia para descubrir concentracion de perfiles y paises dominantes.
+
+La correlacion entre \texttt{team\_id} y \texttt{player\_id} es moderada porque refleja la estructura de pertenencia, pero no debe interpretarse como relacion numerica intrinseca.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{lineups_jersey_number_boxplot.png}
+  \caption{Distribucion de \texttt{jersey\_number}. Sirve para detectar dorsales atipicos y concentracion en numeros habituales.}
+\end{figure}
+
+\subsection{player\_match\_position\_fact}
+Esta tabla es esencial para analisis tactico. \texttt{position\_id}, \texttt{from\_period} y \texttt{to\_period} permiten estudiar permanencia, cambios de rol y sustituciones.
+
+Los graficos de frecuencias en \texttt{position}, \texttt{start\_reason} y \texttt{end\_reason} explican la estructura real de transiciones. La correlacion entre \texttt{position\_id} y \texttt{from\_period} puede sugerir que ciertos roles aparecen con mas peso en tramos especificos del partido.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{positions_position_bar.png}
+  \caption{Frecuencia de posiciones. Resume la ocupacion tactica observada en la muestra.}
+\end{figure}
+
+\subsection{manager\_team\_match\_bridge}
+Esta tabla puente permite enlazar manager, equipo y partido. Es vital para analisis de contexto organizacional y para estudiar cambios de tecnico por competencia o temporada. \texttt{role} debe analizarse por frecuencia porque separa home y away.
+
+\subsection{three\_sixty\_events y three\_sixty\_freeze\_frame}
+Estas tablas soportan analisis espacial. Las variables \texttt{x} e \texttt{y} no deben interpretarse como gaussianas; conviene usar histogramas, densidad y dispersión espacial. La media y la desviacion estandar sirven como resumen, pero la interpretacion principal es posicional.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{tracking_xy_scatter.png}
+  \caption{Nube espacial de \textit{freeze frames}. Permite observar la distribución de posiciones en el campo y los patrones de cobertura espacial de los jugadores.}
+  \label{fig:xy_scatter}
+\end{figure}
+
+La Figura~\ref{fig:xy_scatter} muestra el scatter de coordenadas $(x, y)$ de los \textit{freeze frames}, evidenciando una concentración espacial muy clara en la zona central del campo. La distribución global presenta una forma elíptica, con mayor dispersión en el eje horizontal que en el vertical.
+
+En términos de interpretación espacial, no se observa una relación lineal fuerte entre $x$ e $y$; en cambio, cada eje describe dimensiones independientes del posicionamiento dentro del terreno de juego.
+
+El análisis detallado indica que:
+
+\begin{itemize}
+    \item La coordenada $x$ ocupa prácticamente todo el ancho del campo, aunque con mayor densidad entre las zonas media y media-alta, aproximadamente en el rango de 35 a 100.
+    \item La coordenada $y$ se concentra alrededor de la zona central vertical del campo, con mayor densidad entre 20 y 60, y un núcleo visual cercano a 40.
+    \item Esto sugiere que la mayoría de las acciones ocurren en zonas habituales de juego, evitando los extremos del terreno.
+    \item Existe un alto grado de solapamiento entre las dos series representadas, lo que indica que ambas comparten un mismo espacio de ocupación general.
+    \item La dispersión en $x$ es significativamente mayor que en $y$, generando una nube más ancha que alta.
+    \item Se observan puntos aislados en los bordes del campo y en valores atípicos de $y$, los cuales podrían corresponder a outliers o eventos específicos del juego.
+\end{itemize}
+
+En conjunto, la forma de la nube no es circular ni presenta estructura diagonal, lo que sugiere ausencia de dependencia funcional entre $x$ e $y$, y más bien una co-ocurrencia espacial dentro del campo de juego.
+
+\section{Como interpretar las metricas}
+\begin{itemize}
+  \item Si la media y la mediana son similares, la distribucion es aproximadamente simetrica.
+  \item Si la media supera mucho a la mediana, hay sesgo positivo y valores altos extremos.
+  \item Si hay correlaciones altas entre variables de tiempo, suele haber dependencia estructural y no un hallazgo tactico directo.
+  \item Si una variable es identificador, su correlacion con otras suele ser artefacto de codificacion y no una relacion semantica.
+  \item Si covarianza y correlacion dicen cosas distintas, se debe priorizar correlacion para comparar fuerza de relacion.
+\end{itemize}
+
+\section{Conclusión}
+El analisis debe centrarse en \texttt{events\_fact} para comportamiento de juego, en \texttt{matches\_fact} para contexto competitivo, en las tablas de alineaciones para estructura de jugadores, y en las tablas 360 para analisis espacial. Las medidas de tendencia central, dispersion, correlacion y covarianza son utiles siempre que se interpreten segun el tipo de variable y no se mezclen llaves con magnitudes.
+
+
+
+\section{Análisis del problema de Machine Learning supervisado}
+
+A partir del análisis exploratorio y de perfilamiento de datos realizado sobre el dataset de StatsBomb, se responden las siguientes preguntas clave para definir un enfoque de aprendizaje supervisado.
+
+\subsection{¿Es un problema supervisado? ¿Cuál es la columna de “salida”? ¿Binaria, multiclase?}
+
+El documento no define explícitamente una variable objetivo para un modelo supervisado. Sin embargo, el dataset permite plantear múltiples problemas supervisados según el objetivo analítico:
+
+\begin{itemize}
+    \item \textbf{Regresión:} predecir el resultado numérico de un partido (por ejemplo, \texttt{home\_score} o \texttt{away\_score} en la tabla \texttt{matches}).
+    \item \textbf{Clasificación multiclase:} predecir el tipo de evento (\texttt{event\_type\_name}) en la tabla \texttt{events}, que tiene 35 categorías únicas (pase, tiro, recepción, etc.).
+    \item \textbf{Clasificación binaria:} predecir si un evento pertenece o no a una categoría específica (por ejemplo, si es un pase exitoso o no, aunque el documento no incluye una columna de éxito explícita).
+    \item \textbf{Clasificación de resultado del partido:} victoria local, empate, victoria visitante (binaria o ternaria derivada de \texttt{home\_score} y \texttt{away\_score}).
+\end{itemize}
+
+Dado que el reporte no etiqueta ninguna columna como \emph{target}, el problema no está predefinido como supervisado. Será el analista quien defina la variable de salida según el caso de uso.
+
+\subsection{¿Está balanceado el conjunto de salida?}
+
+Depende de la variable elegida:
+
+\begin{itemize}
+    \item Para \texttt{event\_type\_name}, la distribución es muy desbalanceada: \emph{Pass} (3.39M), \emph{Ball Receipt*} (3.17M) y \emph{Carry} (2.63M) dominan, mientras que eventos como \emph{Own Goal Against} (337) o \emph{Camera off} (693) son extremadamente raros.
+    \item Para \texttt{home\_score} y \texttt{away\_score}, la media es 1.60 y 1.26 respectivamente, con muchos partidos sin goles (847 partidos con cero goles del local, 1104 del visitante). No hay un balance perfecto.
+    \item Para la fase del torneo (\texttt{competition\_stage\_name}), hay fuerte desbalance: 2961 partidos en \emph{Regular Season} vs. 1 en \emph{Championship - Final}.
+\end{itemize}
+
+En general, las variables de salida candidatas presentan desbalance, por lo que se requerirán técnicas de remuestreo o métricas adecuadas (F1-score, AUC, etc.).
+
+\subsection{¿Cuáles parecen ser features importantes? ¿Cuáles podemos descartar?}
+
+\textbf{Features importantes:}
+
+\begin{itemize}
+    \item Variables temporales: \texttt{minute}, \texttt{second}, \texttt{period}, \texttt{index}, \texttt{possession} (fuertemente correlacionadas con la dinámica del partido).
+    \item Variables espaciales: \texttt{x}, \texttt{y} (independientes de otras variables, aportan información única sobre el posicionamiento).
+    \item Variables contextuales: \texttt{team\_id}, \texttt{competition\_id}, \texttt{season\_id}, \texttt{match\_week}.
+    \item Variables tácticas: \texttt{formation}, \texttt{position\_name}, \texttt{play\_pattern\_name}.
+\end{itemize}
+
+\textbf{Variables a descartar o tratar con precaución:}
+
+\begin{itemize}
+    \item \texttt{player\_nickname} (61.94\% nulos) – no fiable como clave.
+    \item Identificadores puros (\texttt{event\_id}, \texttt{match\_id}, etc.) no aportan poder predictivo.
+    \item \texttt{duration} (26.26\% nulos) – los nulos son esperables, pero los valores negativos (mínimo -2660.41) indican inconsistencias.
+    \item Variables con un único valor: \texttt{match\_status} (siempre \emph{available}) no aporta información.
+\end{itemize}
+
+\subsection{¿Estamos ante un problema dependiente del tiempo? (Time Series)}
+
+\textbf{Sí, completamente.} La tabla \texttt{events} está ordenada secuencialmente por partido mediante la columna \texttt{index}. Cada evento tiene \texttt{timestamp}, \texttt{minute}, \texttt{second} y \texttt{period}. Además, la posesión y los patrones de juego tienen estructura temporal. Por lo tanto, cualquier modelo predictivo que utilice eventos debe respetar el orden temporal y no mezclar eventos de distintos partidos o momentos. Se recomienda usar validación con series temporales (por ejemplo, ventana deslizante o validación por orden cronológico de partidos usando \texttt{match\_date}).
+
+\subsection{Si fuera un problema de Visión Artificial: ¿Tenemos suficientes muestras de cada clase y variedad para generalizar?}
+
+El dataset incluye tablas de tracking 360: \texttt{three\_sixty\_events} (1,027,908 registros) y \texttt{three\_sixty\_freeze\_frame} (15,583,891 registros). Cada registro de \texttt{freeze\_frame} contiene coordenadas \((x, y)\) de un jugador en un instante. Esto es adecuado para modelos espaciales o de detección de patrones.
+
+\begin{itemize}
+    \item \textbf{Cantidad:} Más de 15 millones de muestras es suficiente para entrenar redes neuronales profundas.
+    \item \textbf{Variedades:} Las coordenadas cubren prácticamente todo el campo, aunque con alta densidad en la zona central (ver Figura 7 del documento). Hay puntos en los extremos y valores atípicos, lo que proporciona variedad espacial.
+    \item \textbf{Clases (roles):} Las variables \texttt{teammate}, \texttt{actor}, \texttt{keeper} son booleanas y están desbalanceadas (pocos actores y porteros). Para tareas como clasificación de rol se necesitaría manejar el desbalance.
+    \item \textbf{Calidad:} No hay nulos en estas tablas, pero la disponibilidad de datos 360 es limitada: la mayoría de los partidos tienen \texttt{match\_status\_360} = \emph{unscheduled} o \emph{scheduled}, y solo una fracción reducida es \emph{available}. Por lo tanto, aunque las muestras existentes son muchas, la cobertura real de partidos con tracking 360 es baja.
+\end{itemize}
+
+En conclusión, hay suficientes muestras para generalizar, pero la variedad de contextos (tipos de eventos, condiciones de partido) puede estar sesgada hacia zonas centrales del campo y hacia competiciones europeas.
+
+\subsection{¿La distribución y tendencia de las variables varía en el tiempo?}
+
+Sí, el documento evidencia variaciones temporales:
+
+\begin{itemize}
+    \item Las temporadas abarcan desde 1958 hasta 2025 (columna \texttt{match\_date} en \texttt{matches}). Las formaciones tácticas, frecuencia de ciertos eventos o el número de partidos por competición pueden haber cambiado drásticamente a lo largo de décadas.
+    \item El análisis de \texttt{competition\_stage\_name} muestra que la mayoría de los partidos son de temporada regular, pero hay etapas eliminatorias en momentos específicos del calendario.
+    \item La variable \texttt{match\_week} (0 a 38) indica que el rendimiento de los equipos puede variar a lo largo de la temporada (efecto de fatiga, lesiones, etc.).
+\end{itemize}
+
+Se recomienda analizar la evolución temporal de métricas como goles por partido, tipos de eventos predominantes o duración media de acciones por década.
+
+\subsection{¿Hay algún problema notable con la calidad de los datos?}
+
+Se identifican los siguientes problemas:
+
+\begin{itemize}
+    \item \textbf{Valores nulos:} \texttt{player\_nickname} (62\%), \texttt{to\_time} (58\%), \texttt{duration} (26\%), \texttt{group} (5.6\%), \texttt{stadium\_id} (0.29\%), \texttt{kick\_off} (0.14\%). Aunque manejables, deben tratarse adecuadamente.
+    \item \textbf{Valores negativos o atípicos:} \texttt{duration} tiene mínimo -2660 segundos, lo que indica datos erróneos que deben filtrarse.
+    \item \textbf{Disponibilidad de datos 360:} Muy pocos partidos tienen estado \emph{available} (ver Figura 4). Si se requiere tracking espacial, la muestra útil se reduce drásticamente.
+    \item \textbf{Homonimia:} 4 nombres de equipos duplicados con distintos \texttt{team\_id}, lo que puede causar confusiones en cruces.
+    \item \textbf{Ceros en variables numéricas:} \texttt{jersey\_number} incluye 0 (no válido), \texttt{home\_score} y \texttt{away\_score} tienen muchos ceros reales (partidos sin goles), lo cual no es error sino característica del dominio.
+\end{itemize}
+
+\subsection{¿Existe alguna relación sorprendente entre las variables?}
+
+El reporte revela hallazgos interesantes:
+
+\begin{itemize}
+    \item \textbf{Alta correlación temporal:} \texttt{index}, \texttt{minute}, \texttt{period} y \texttt{possession} tienen correlaciones > 0.80 (hasta 0.97). Esto indica redundancia estructural, no causalidad táctica. No debe interpretarse como que la posesión causa el tiempo, sino que ambos avanzan juntos.
+    \item \textbf{Independencia espacial:} Las coordenadas \(x\) e \(y\) tienen correlación prácticamente nula con el resto de variables, lo que sugiere que la posición en el campo es una dimensión ortogonal al flujo temporal y al tipo de evento. Esto es valioso para modelos espaciales.
+    \item \textbf{Correlación moderada entre \texttt{event\_type\_id} y \texttt{duration}:} Ciertos eventos (como pases largos o regates) tienen duraciones características, aunque no deterministas.
+    \item \textbf{Formaciones tácticas dominantes:} El 4-2-3-1 es la formación más frecuente (49,225 registros), seguida de 4-3-3 y 4-4-2. Esto refleja una preferencia táctica global en los datos analizados.
+\end{itemize}
+
+\end{document}
+
+\end{document}
+
+
+\end{document}

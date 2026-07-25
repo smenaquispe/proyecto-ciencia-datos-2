@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard 4 — Reducción de Dimensionalidad</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#1e2127;color:#abb2bf;font-family:system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+  /* ── Header ── */
+  header{background:#21252b;border-bottom:1px solid #3e4452;padding:8px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+  header h1{font-size:13px;font-weight:600;color:#e6e6e6;white-space:nowrap}
+  .sep{color:#3e4452}
+  .method-btns{display:flex;gap:4px}
+  .mbtn{background:#2c313a;border:1px solid #3e4452;color:#828997;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500;transition:.15s}
+  .mbtn:hover{color:#abb2bf;border-color:#61afef}
+  .mbtn.active{background:#61afef;color:#1e2127;border-color:#61afef}
+  select{background:#2c313a;border:1px solid #3e4452;color:#abb2bf;padding:4px 8px;border-radius:4px;font-size:12px;cursor:pointer}
+  .reset-btn{background:transparent;border:1px solid #3e4452;color:#828997;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px}
+  .reset-btn:hover{border-color:#e06c75;color:#e06c75}
+  .legend{display:flex;gap:10px;margin-left:auto}
+  .legend span{font-size:11px;display:flex;align-items:center;gap:3px}
+  .legend span::before{content:'●';font-size:14px}
+  .link-btn{background:transparent;border:1px solid #3e4452;color:#61afef;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;text-decoration:none;white-space:nowrap}
+  .link-btn:hover{border-color:#61afef}
+  /* ── Main layout ── */
+  main{flex:1;display:flex;min-height:0}
+  #scatter-panel{flex:0 0 63%;position:relative;border-right:1px solid #3e4452}
+  #scatter{width:100%;height:100%}
+  #side-panel{flex:1;display:flex;flex-direction:column;min-height:0;background:#21252b}
+  /* ── Info bar ── */
+  #info-bar{padding:6px 12px;background:#2c313a;border-bottom:1px solid #3e4452;display:flex;align-items:center;gap:10px;flex-shrink:0}
+  #sel-count{font-size:12px;color:#e5c07b;font-weight:600}
+  #params-text{font-size:10px;color:#5c6370;margin-left:auto}
+  /* ── Tabs ── */
+  .tabs{display:flex;border-bottom:1px solid #3e4452;flex-shrink:0}
+  .tab{flex:1;padding:7px 4px;background:transparent;border:none;color:#828997;cursor:pointer;font-size:11px;font-weight:500;border-bottom:2px solid transparent;transition:.15s}
+  .tab:hover{color:#abb2bf}
+  .tab.active{color:#61afef;border-bottom-color:#61afef}
+  /* ── Tab content ── */
+  .tab-pane{flex:1;min-height:0;display:none}
+  .tab-pane.active{display:flex;flex-direction:column}
+  .chart-area{flex:1;min-height:0}
+  /* Feature selector inside tab */
+  .tab-toolbar{padding:5px 10px;border-bottom:1px solid #2c313a;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .tab-toolbar label{font-size:11px;color:#5c6370}
+  /* Tooltip */
+  #tooltip{position:fixed;background:#2c313a;border:1px solid #3e4452;border-radius:6px;padding:8px 12px;font-size:12px;color:#abb2bf;pointer-events:none;display:none;z-index:999;max-width:220px;line-height:1.6}
+  #tooltip b{color:#e6e6e6}
+  /* Loading */
+  #loading{position:absolute;inset:0;background:#1e2127cc;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5c6370;z-index:10}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sección 4 — Reducción de Dimensionalidad</h1>
+  <span class="sep">|</span>
+  <div class="method-btns">
+    <button class="mbtn active" data-m="umap"  onclick="setMethod('umap')">UMAP</button>
+    <button class="mbtn"        data-m="pca"   onclick="setMethod('pca')">PCA</button>
+    <button class="mbtn"        data-m="tsne"  onclick="setMethod('tsne')">t-SNE</button>
+    <button class="mbtn"        data-m="mds"   onclick="setMethod('mds')">MDS</button>
+  </div>
+  <button class="reset-btn" onclick="resetSel()">✕ Limpiar</button>
+  <div class="legend">
+    <span style="color:#e5c07b">GK</span>
+    <span style="color:#61afef">DEF</span>
+    <span style="color:#56b6c2">DM</span>
+    <span style="color:#98c379">MID</span>
+    <span style="color:#e06c75">FWD</span>
+  </div>
+  <a class="link-btn" href="casos.html">Sección 5: Casos →</a>
+</header>
+
+<main>
+  <div id="scatter-panel">
+    <div id="loading">Cargando datos…</div>
+    <div id="scatter"></div>
+  </div>
+
+  <div id="side-panel">
+    <div id="info-bar">
+      <span id="sel-count">0 seleccionados — arrastra para seleccionar</span>
+      <span id="params-text">UMAP: n_neighbors=15, min_dist=0.1</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('hist')">Histograma</button>
+      <button class="tab" onclick="showTab('pc')">Coord. Paralelas</button>
+      <button class="tab" onclick="showTab('heat')">Heatmap</button>
+    </div>
+
+    <!-- Histogram tab -->
+    <div id="tab-hist" class="tab-pane active">
+      <div class="tab-toolbar">
+        <label>Feature:</label>
+        <select id="feat-sel" onchange="setFeature(this.value)"></select>
+      </div>
+      <div class="chart-area" id="histogram"></div>
+    </div>
+
+    <!-- Parallel coords tab -->
+    <div id="tab-pc" class="tab-pane">
+      <div class="chart-area" id="parcoords"></div>
+    </div>
+
+    <!-- Heatmap tab -->
+    <div id="tab-heat" class="tab-pane">
+      <div class="chart-area" id="heatmap"></div>
+    </div>
+  </div>
+</main>
+
+<div id="tooltip"></div>
+
+<script>
+const API = '';
+const POS_COLORS = {GK:'#e5c07b',DEF:'#61afef',DM:'#56b6c2',MID:'#98c379',FWD:'#e06c75'};
+const METHOD_PARAMS = {
+  umap: 'UMAP: n_neighbors=15, min_dist=0.1',
+  pca:  'PCA: PC1=28.2%, PC2=24.3%, acum=52.5%',
+  tsne: 't-SNE: perplexity=30, max_iter=1000, KL=1.747',
+  mds:  'MDS: métrico, n=2000 subsample, stress=3.8M',
+};
+const FEATURES = [
+  'shots_per90','shots_on_target_per90','goals_per90',
+  'dribbles_per90','dribble_success_rate',
+  'carries_per90','carry_distance_per90','carries_final_third_per90',
+  'passes_per90','pass_completion_rate','progressive_passes_per90',
+  'crosses_per90','through_balls_per90','pass_switches_per90',
+  'pass_length_avg','pass_acc_under_pressure',
+  'pressures_per90','ball_recoveries_per90','blocks_per90',
+  'clearances_per90','duels_per90','duel_win_rate','under_pressure_rate',
+];
+// 8 features for parcoords (cross-sectional profile)
+const PC_FEATURES = [
+  'passes_per90','progressive_passes_per90','pressures_per90',
+  'duels_per90','shots_per90','dribbles_per90','clearances_per90','goals_per90',
+];
+const FEAT_LABEL = f => f.replace(/_per90$/,'').replace(/_/g,' ');
+
+let state = {method:'umap', feature:'passes_per90', selIds:new Set(), data:[], activeTab:'hist'};
+let scatterReady = false;
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  // Populate feature selector
+  const sel = document.getElementById('feat-sel');
+  FEATURES.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f; o.textContent = FEAT_LABEL(f);
+    if (f === state.feature) o.selected = true;
+    sel.appendChild(o);
+  });
+  await loadAndRender();
+}
+
+async function loadAndRender() {
+  document.getElementById('loading').style.display = 'flex';
+  const res = await fetch(`${API}/api/players?method=${state.method}`);
+  state.data = await res.json();
+  document.getElementById('loading').style.display = 'none';
+  renderScatter();
+  renderHistogram();
+  renderParcoords();
+  renderHeatmap();
+  updateInfo();
+}
+
+// ── Controls ─────────────────────────────────────────────────────────────────
+function setMethod(m) {
+  state.method = m; state.selIds = new Set();
+  document.querySelectorAll('.mbtn').forEach(b => b.classList.toggle('active', b.dataset.m === m));
+  document.getElementById('params-text').textContent = METHOD_PARAMS[m];
+  loadAndRender();
+}
+
+function setFeature(f) { state.feature = f; renderHistogram(); }
+
+function resetSel() {
+  state.selIds = new Set();
+  renderScatter(); renderHistogram(); renderParcoords(); renderHeatmap(); updateInfo();
+}
+
+function showTab(name) {
+  state.activeTab = name;
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['hist','pc','heat'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.getElementById(`tab-${name}`).classList.add('active');
+  // Re-render the newly visible chart to fix sizing
+  if (name === 'hist') renderHistogram();
+  else if (name === 'pc') renderParcoords();
+  else renderHeatmap();
+}
+
+function updateInfo() {
+  const n = state.selIds.size;
+  document.getElementById('sel-count').textContent =
+    n > 0 ? `${n} jugadores seleccionados` : '0 seleccionados — arrastra para seleccionar';
+}
+
+// ── Scatter ───────────────────────────────────────────────────────────────────
+function renderScatter() {
+  const d = state.data;
+  const sel = state.selIds;
+  const filtered = sel.size > 0;
+
+  const trace = {
+    type: 'scattergl', mode: 'markers',
+    x: d.map(p => p.x), y: d.map(p => p.y),
+    marker: {
+      color: d.map(p => POS_COLORS[p.pos_group] || '#aaa'),
+      size:  d.map(p => filtered && sel.has(p.player_id) ? 9 : 5),
+      opacity: d.map(p => filtered ? (sel.has(p.player_id) ? 0.95 : 0.08) : 0.7),
+      line: {width: 0},
+    },
+    text: d.map(p =>
+      `<b>${p.player_name}</b><br>${p.dominant_position}<br>${Math.round(p.total_minutes)}′ | ${p.matches_played} partidos`
+    ),
+    hovertemplate: '%{text}<extra></extra>',
+    customdata: d.map(p => p.player_id),
+    selected:   {marker:{opacity:1, size:9}},
+    unselected: {marker:{opacity:0.08}},
+  };
+
+  const xLabel = state.method === 'pca' ? 'PC1 (28.2%)' : 'Dim 1';
+  const yLabel = state.method === 'pca' ? 'PC2 (24.3%)' : 'Dim 2';
+  const titleMap = {umap:'UMAP',pca:'PCA',tsne:'t-SNE',mds:'MDS'};
+
+  const layout = {
+    title: {text:`<b>${titleMap[state.method]}</b> — ${METHOD_PARAMS[state.method]}`, font:{color:'#abb2bf',size:11}},
+    paper_bgcolor:'#1e2127', plot_bgcolor:'#282c34',
+    font:{color:'#abb2bf'},
+    dragmode:'select',
+    xaxis:{gridcolor:'#3e4452',zerolinecolor:'#3e4452',title:{text:xLabel,font:{size:11}}},
+    yaxis:{gridcolor:'#3e4452',zerolinecolor:'#3e4452',title:{text:yLabel,font:{size:11}}},
+    margin:{t:42,r:8,b:36,l:38},
+    showlegend:false,
+    hovermode:'closest',
+    newshape:{line:{color:'#61afef'}},
+  };
+
+  Plotly.react('scatter', [trace], layout, {displayModeBar:true, scrollZoom:true, responsive:true});
+
+  if (!scatterReady) {
+    scatterReady = true;
+    const el = document.getElementById('scatter');
+
+    el.on('plotly_selected', ev => {
+      state.selIds = ev ? new Set(ev.points.map(p => p.customdata)) : new Set();
+      onSelection();
+    });
+    el.on('plotly_deselect', () => { state.selIds = new Set(); onSelection(); });
+  }
+}
+
+function onSelection() {
+  renderHistogram(); renderParcoords(); renderHeatmap(); updateInfo();
+  // Update opacity without full re-render
+  const d = state.data; const sel = state.selIds; const filtered = sel.size > 0;
+  Plotly.restyle('scatter', {
+    'marker.opacity': [d.map(p => filtered?(sel.has(p.player_id)?0.95:0.08):0.7)],
+    'marker.size':    [d.map(p => filtered&&sel.has(p.player_id)?9:5)],
+  });
+}
+
+// ── Histogram ─────────────────────────────────────────────────────────────────
+function renderHistogram() {
+  const f = state.feature;
+  const all = state.data.filter(p => p[f] != null);
+  const sel = all.filter(p => state.selIds.has(p.player_id));
+
+  const traces = [{
+    type:'histogram', name:'Todos', x:all.map(p=>p[f]),
+    marker:{color:'#3d4557'}, opacity:0.7, nbinsx:50,
+    hovertemplate:'%{y} jugadores<extra></extra>',
+  }];
+  if (sel.length > 0) traces.push({
+    type:'histogram', name:`Selec. (${sel.length})`, x:sel.map(p=>p[f]),
+    marker:{color:'#e5c07b'}, opacity:0.85, nbinsx:50,
+    hovertemplate:'%{y} seleccionados<extra></extra>',
+  });
+
+  const layout = {
+    paper_bgcolor:'#1e2127', plot_bgcolor:'#282c34', font:{color:'#abb2bf',size:10},
+    barmode:'overlay', showlegend:sel.length>0,
+    legend:{font:{size:9},bgcolor:'transparent',bordercolor:'transparent'},
+    xaxis:{gridcolor:'#3e4452', title:{text:FEAT_LABEL(f),font:{size:10}}},
+    yaxis:{gridcolor:'#3e4452', title:{text:'Jugadores',font:{size:10}}},
+    margin:{t:12,r:10,b:40,l:44},
+  };
+  Plotly.react('histogram', traces, layout, {responsive:true, displayModeBar:false});
+}
+
+// ── Parallel Coordinates ───────────────────────────────────────────────────────
+function renderParcoords() {
+  const d = state.data;
+  const sel = state.selIds;
+
+  const colorArr = d.map(p => sel.size===0 ? 0.3 : (sel.has(p.player_id) ? 1 : 0));
+
+  const dims = PC_FEATURES.map(f => ({
+    label: FEAT_LABEL(f),
+    values: d.map(p => p[f] ?? 0),
+  }));
+
+  const trace = {
+    type:'parcoords',
+    line:{
+      color: colorArr,
+      colorscale:[[0,'#1e2127'],[0.3,'#2c313a'],[1,'#e5c07b']],
+      opacity: 0.6,
+    },
+    dimensions: dims,
+    labelangle: -25,
+    labelfont:{color:'#abb2bf',size:9},
+    tickfont: {color:'#5c6370',size:8},
+    rangefont:{color:'#5c6370',size:8},
+  };
+
+  Plotly.react('parcoords', [trace], {
+    paper_bgcolor:'#1e2127', plot_bgcolor:'#282c34',
+    font:{color:'#abb2bf'},
+    margin:{t:30,r:20,b:20,l:20},
+  }, {responsive:true, displayModeBar:false});
+}
+
+// ── Heatmap (features × selected players) ────────────────────────────────────
+function renderHeatmap() {
+  const players = state.data.filter(p => state.selIds.has(p.player_id)).slice(0, 35);
+
+  if (players.length === 0) {
+    Plotly.react('heatmap', [], {
+      paper_bgcolor:'#1e2127', plot_bgcolor:'#282c34',
+      annotations:[{x:0.5,y:0.5,xref:'paper',yref:'paper',
+        text:'Selecciona jugadores en el scatter<br><span style="font-size:11px;color:#5c6370">Arrastra un rectángulo sobre los puntos</span>',
+        showarrow:false, font:{color:'#5c6370',size:13}}],
+      margin:{t:10,r:10,b:10,l:10},
+    }, {displayModeBar:false});
+    return;
+  }
+
+  // Normalize each feature to [0,1] across the selected set for visibility
+  const z = PC_FEATURES.map(f => {
+    const vals = players.map(p => p[f] ?? 0);
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    return mx > mn ? vals.map(v => (v-mn)/(mx-mn)) : vals.map(() => 0.5);
+  });
+
+  // Annotate with original values
+  const text = PC_FEATURES.map((f,fi) =>
+    players.map(p => (p[f] != null ? p[f].toFixed(2) : 'N/A'))
+  );
+
+  Plotly.react('heatmap', [{
+    type:'heatmap',
+    x: players.map(p => p.player_name.split(' ').pop()),
+    y: PC_FEATURES.map(FEAT_LABEL),
+    z, text,
+    texttemplate:'%{text}', textfont:{size:8, color:'#abb2bf'},
+    colorscale:'YlOrRd', showscale:false,
+    hovertemplate:'<b>%{y}</b><br>%{x}: %{text}<extra></extra>',
+  }], {
+    paper_bgcolor:'#1e2127', plot_bgcolor:'#282c34',
+    font:{color:'#abb2bf',size:8},
+    margin:{t:10,r:10,b:80,l:120},
+    xaxis:{tickangle:-55, tickfont:{size:8}},
+    yaxis:{tickfont:{size:9}},
+  }, {responsive:true, displayModeBar:false});
+}
+
+init();
+</script>
+</body>
+</html>

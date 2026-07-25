@@ -12,7 +12,7 @@ def download_raw_competitions():
 
     if os.path.exists("data/raw/competitions.json"):
         print("El archivo competitions.json ya existe. No se descarga.")
-        return
+        return "data/raw/competitions.json"
 
     # Descargar
     response = requests.get(url)
@@ -22,6 +22,7 @@ def download_raw_competitions():
         f.write(response.content)
 
     print("competitions.json descargado correctamente")
+    return "data/raw/competitions.json"
 
 def transform_raw_competitions(json_path):
     os.makedirs("data/processed/parquet", exist_ok=True)

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard 4 — Sección 5: Análisis de Casos</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#1e2127;color:#abb2bf;font-family:system-ui,sans-serif;font-size:13px;min-height:100vh}
+  header{background:#21252b;border-bottom:1px solid #3e4452;padding:8px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+  header h1{font-size:13px;font-weight:600;color:#e6e6e6}
+  .back{background:transparent;border:1px solid #3e4452;color:#61afef;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:12px}
+  .case-nav{display:flex;gap:6px;margin-left:auto}
+  .cnav{background:#2c313a;border:1px solid #3e4452;color:#828997;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;text-decoration:none}
+  .cnav:hover{color:#abb2bf;border-color:#61afef}
+
+  .case-section{padding:24px 20px;border-bottom:1px solid #2c313a}
+  .case-section h2{font-size:14px;font-weight:600;color:#61afef;margin-bottom:4px}
+  .case-section h3{font-size:12px;color:#5c6370;margin-bottom:14px;font-weight:normal}
+  .case-body{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .case-body.wide{grid-template-columns:1fr}
+  .scatter-wrap{background:#21252b;border:1px solid #3e4452;border-radius:6px;overflow:hidden}
+  .analysis{background:#21252b;border:1px solid #3e4452;border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:12px}
+  .analysis p{font-size:12px;line-height:1.7;color:#abb2bf}
+  .analysis p b{color:#e6e6e6}
+  .analysis p em{color:#e5c07b;font-style:normal}
+
+  /* Feature comparison table */
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  thead th{background:#2c313a;color:#abb2bf;padding:5px 8px;text-align:left;font-weight:500;border-bottom:1px solid #3e4452}
+  thead th:nth-child(n+2){text-align:right}
+  tbody tr:nth-child(even){background:#252931}
+  tbody td{padding:4px 8px;border-bottom:1px solid #2c313a;color:#828997}
+  tbody td:first-child{color:#abb2bf}
+  tbody td:nth-child(n+2){text-align:right;font-family:monospace}
+  .diff-hi{color:#98c379!important}
+  .diff-lo{color:#e06c75!important}
+  .loading{padding:40px;text-align:center;color:#5c6370}
+  .tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600;margin-right:4px}
+  .tag-gk{background:#e5c07b22;color:#e5c07b;border:1px solid #e5c07b44}
+  .tag-def{background:#61afef22;color:#61afef;border:1px solid #61afef44}
+  .tag-dm{background:#56b6c222;color:#56b6c2;border:1px solid #56b6c244}
+  .tag-mid{background:#98c37922;color:#98c379;border:1px solid #98c37944}
+  .tag-fwd{background:#e06c7522;color:#e06c75;border:1px solid #e06c7544}
+  .metric-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #2c313a22}
+  .metric-row .ml{color:#828997;font-size:11px}
+  .metric-row .mr{font-family:monospace;font-size:11px;color:#e6e6e6}
+  .eu-dist{background:#2c313a;border-radius:4px;padding:8px 12px;text-align:center}
+  .eu-dist .label{font-size:10px;color:#5c6370;margin-bottom:2px}
+  .eu-dist .val{font-size:18px;font-weight:600;color:#e5c07b;font-family:monospace}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sección 5 — Análisis de Proyección 2D: Casos</h1>
+  <a class="back" href="index.html">← Sección 4</a>
+  <nav class="case-nav">
+    <a class="cnav" href="#case1">Caso 1: Cercanos</a>
+    <a class="cnav" href="#case2">Caso 2: Lejanos</a>
+    <a class="cnav" href="#case3">Caso 3: Atípico</a>
+    <a class="cnav" href="#case4">Caso 4: Cluster</a>
+  </nav>
+</header>
+
+<div id="main-content">
+  <div class="loading">Cargando datos…</div>
+</div>
+
+<script>
+const API = '';
+const POS_COLORS = {GK:'#e5c07b',DEF:'#61afef',DM:'#56b6c2',MID:'#98c379',FWD:'#e06c75'};
+const TAG_CLASS  = {GK:'tag-gk',DEF:'tag-def',DM:'tag-dm',MID:'tag-mid',FWD:'tag-fwd'};
+const FEATURES = [
+  'shots_per90','shots_on_target_per90','goals_per90',
+  'dribbles_per90','dribble_success_rate',
+  'carries_per90','carry_distance_per90','carries_final_third_per90',
+  'passes_per90','pass_completion_rate','progressive_passes_per90',
+  'crosses_per90','through_balls_per90','pass_switches_per90',
+  'pass_length_avg','pass_acc_under_pressure',
+  'pressures_per90','ball_recoveries_per90','blocks_per90',
+  'clearances_per90','duels_per90','duel_win_rate','under_pressure_rate',
+];
+const FL = f => f.replace(/_per90$/,'').replace(/_/g,' ');
+
+async function init() {
+  const [allData, caseData] = await Promise.all([
+    fetch(`${API}/api/players?method=umap`).then(r=>r.json()),
+    fetch(`${API}/api/cases`).then(r=>r.json()),
+  ]);
+  render(allData, caseData);
+}
+
+function posTag(g) {
+  return `<span class="tag ${TAG_CLASS[g]||'tag-mid'}">${g}</span>`;
+}
+
+// miniScatter defined below (single implementation)
+
+// ── Comparison table (2 players) ─────────────────────────────────────────────
+function compTable(pa, pb) {
+  // Sort by absolute diff descending
+  const rows = FEATURES
+    .filter(f => pa.features[f] != null && pb.features[f] != null)
+    .map(f => {
+      const a = pa.features[f], b = pb.features[f];
+      const maxV = Math.max(Math.abs(a), Math.abs(b), 0.001);
+      return {f, a, b, diff: Math.abs(a-b), pct: Math.abs(a-b)/maxV*100};
+    })
+    .sort((x,y) => y.pct - x.pct);
+
+  const rows_html = rows.map(r => `
+    <tr>
+      <td>${FL(r.f)}</td>
+      <td>${r.a.toFixed(3)}</td>
+      <td>${r.b.toFixed(3)}</td>
+      <td class="${r.pct>30?'diff-hi':r.pct<5?'diff-lo':''}">${r.diff.toFixed(3)} (${r.pct.toFixed(0)}%)</td>
+    </tr>`).join('');
+
+  return `
+    <table>
+      <thead><tr>
+        <th>Feature</th>
+        <th>${pa.player_name.split(' ').pop()}</th>
+        <th>${pb.player_name.split(' ').pop()}</th>
+        <th>Diferencia</th>
+      </tr></thead>
+      <tbody>${rows_html}</tbody>
+    </table>`;
+}
+
+// ── Euclidean distance in feature space ──────────────────────────────────────
+function featDist(pa, pb) {
+  return Math.sqrt(FEATURES
+    .filter(f => pa.features[f]!=null && pb.features[f]!=null)
+    .reduce((s,f) => s + (pa.features[f]-pb.features[f])**2, 0));
+}
+
+// ── Similarity analysis text ──────────────────────────────────────────────────
+function similarText(pa, pb) {
+  const pairs = FEATURES
+    .filter(f => pa.features[f]!=null && pb.features[f]!=null)
+    .map(f => {
+      const a=pa.features[f], b=pb.features[f];
+      const mx=Math.max(Math.abs(a),Math.abs(b),0.001);
+      return {f, pct: Math.abs(a-b)/mx*100};
+    });
+  const similar = pairs.sort((x,y)=>x.pct-y.pct).slice(0,4).map(p=>FL(p.f));
+  const different = [...pairs].sort((x,y)=>y.pct-x.pct).slice(0,3).map(p=>FL(p.f));
+  return {similar, different};
+}
+
+// ── Build page ────────────────────────────────────────────────────────────────
+function render(allData, caseData) {
+  const {case1, case2, case3, case4} = caseData;
+  const gkData = allData.filter(p => case4.player_ids.includes(p.player_id));
+  const euD = f => featDist(f.player_a, f.player_b).toFixed(3);
+  const s1 = similarText(case1.player_a, case1.player_b);
+  const s2 = similarText(case2.player_a, case2.player_b);
+
+  // GK average stats
+  const gkAll = allData.filter(p => p.pos_group === 'GK');
+  const avgAll = f => (allData.reduce((s,p)=>s+(p[f]||0),0)/allData.length).toFixed(2);
+  const avgGk  = f => (gkAll.reduce((s,p)=>s+(p[f]||0),0)/gkAll.length).toFixed(2);
+
+  document.getElementById('main-content').innerHTML = `
+
+<!-- ── CASO 1 ───────────────────────────────────────────────────────────────── -->
+<div class="case-section" id="case1">
+  <h2>Caso 1 — Dos puntos muy cercanos</h2>
+  <h3>Procedimiento: identificar dos jugadores próximos en la proyección UMAP, comparar sus valores originales y calcular la distancia euclidiana.</h3>
+  <div class="case-body">
+    <div class="scatter-wrap" id="sc1"></div>
+    <div class="analysis">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <div style="color:#e6e6e6;font-weight:600">${case1.player_a.player_name}</div>
+          <div style="font-size:11px;margin-top:2px">${posTag(case1.player_a.pos_group)}${case1.player_a.dominant_position}</div>
+        </div>
+        <div style="color:#5c6370;padding-top:4px">vs</div>
+        <div style="flex:1">
+          <div style="color:#e6e6e6;font-weight:600">${case1.player_b.player_name}</div>
+          <div style="font-size:11px;margin-top:2px">${posTag(case1.player_b.pos_group)}${case1.player_b.dominant_position}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="eu-dist" style="flex:1">
+          <div class="label">Distancia UMAP</div>
+          <div class="val">${case1.distance.toFixed(4)}</div>
+        </div>
+        <div class="eu-dist" style="flex:1">
+          <div class="label">Distancia euclidiana (23D)</div>
+          <div class="val">${euD(case1)}</div>
+        </div>
+      </div>
+      <p>
+        <b>¿Por qué son similares?</b> Los dos jugadores aparecen muy próximos en la proyección UMAP (distancia = <em>${case1.distance.toFixed(4)}</em>) y en el espacio de 23 dimensiones (d = <em>${euD(case1)}</em>). Ambos comparten el perfil de <em>${case1.player_a.pos_group}</em> y tienen valores muy similares en: <b>${s1.similar.join(', ')}</b>. Estas son las features que los acercan en el espacio de características transformado.
+      </p>
+      <p>
+        <b>Variables con mayor diferencia:</b> ${s2.different.join(', ')}. Sin embargo, estas diferencias son pequeñas comparadas con la varianza total del dataset, de ahí su proximidad.
+      </p>
+      <div style="max-height:220px;overflow-y:auto">${compTable(case1.player_a, case1.player_b)}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CASO 2 ───────────────────────────────────────────────────────────────── -->
+<div class="case-section" id="case2">
+  <h2>Caso 2 — Dos puntos muy lejanos</h2>
+  <h3>Procedimiento: identificar el par de jugadores más distantes en la proyección, comparar valores originales y determinar qué variables explican la separación.</h3>
+  <div class="case-body">
+    <div class="scatter-wrap" id="sc2"></div>
+    <div class="analysis">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <div style="color:#e6e6e6;font-weight:600">${case2.player_a.player_name}</div>
+          <div style="font-size:11px;margin-top:2px">${posTag(case2.player_a.pos_group)}${case2.player_a.dominant_position}</div>
+        </div>
+        <div style="color:#5c6370;padding-top:4px">vs</div>
+        <div style="flex:1">
+          <div style="color:#e6e6e6;font-weight:600">${case2.player_b.player_name}</div>
+          <div style="font-size:11px;margin-top:2px">${posTag(case2.player_b.pos_group)}${case2.player_b.dominant_position}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="eu-dist" style="flex:1">
+          <div class="label">Distancia UMAP</div>
+          <div class="val">${case2.distance.toFixed(4)}</div>
+        </div>
+        <div class="eu-dist" style="flex:1">
+          <div class="label">Distancia euclidiana (23D)</div>
+          <div class="val">${euD(case2)}</div>
+        </div>
+      </div>
+      <p>
+        <b>¿Por qué están separados?</b> La distancia UMAP es <em>${case2.distance.toFixed(2)}</em>, la mayor encontrada en una muestra de 600 pares. Los jugadores pertenecen a perfiles completamente distintos (<em>${case2.player_a.pos_group}</em> vs <em>${case2.player_b.pos_group}</em>). Las variables que más contribuyen a la separación son: <b>${s2.different.join(', ')}</b>. Estas features tienen valores en extremos opuestos del rango del dataset.
+      </p>
+      <p>
+        <b>Interpretación:</b> En UMAP, la distancia global entre clusters sí tiene significado (a diferencia de t-SNE). Una distancia tan grande confirma que estos dos jugadores tienen perfiles de juego fundamentalmente diferentes en las 23 dimensiones del vector de características.
+      </p>
+      <div style="max-height:220px;overflow-y:auto">${compTable(case2.player_a, case2.player_b)}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CASO 3 ───────────────────────────────────────────────────────────────── -->
+<div class="case-section" id="case3">
+  <h2>Caso 3 — Punto atípico (outlier)</h2>
+  <h3>Procedimiento: identificar el jugador más aislado (mayor distancia a su vecino más cercano), analizar sus valores y determinar la causa del aislamiento.</h3>
+  <div class="case-body">
+    <div class="scatter-wrap" id="sc3"></div>
+    <div class="analysis">
+      <div>
+        <div style="color:#e6e6e6;font-weight:600;font-size:14px">${case3.player.player_name}</div>
+        <div style="font-size:11px;margin-top:4px">${posTag(case3.player.pos_group)}${case3.player.dominant_position}</div>
+        <div style="font-size:11px;color:#5c6370;margin-top:4px">${Math.round(case3.player.total_minutes)} minutos jugados</div>
+      </div>
+      <div class="eu-dist">
+        <div class="label">Distancia al vecino más cercano (UMAP)</div>
+        <div class="val">${case3.isolation.toFixed(4)}</div>
+      </div>
+      <p>
+        <b>¿Por qué está aislado?</b> Este jugador tiene una distancia a su vecino más próximo de <em>${case3.isolation.toFixed(2)}</em>, la mayor del dataset. Sus valores en las features clave se ubican en combinaciones extremas que no coinciden con ningún otro jugador del dataset.
+      </p>
+      <p>
+        <b>Categoría del outlier:</b> Se trata de un <em>dato válido pero extremo</em> — no es un error de calidad (los valores son físicamente posibles y provienen directamente de los eventos StatsBomb) sino un jugador con un perfil estadístico muy inusual. Esto puede deberse a: (a) pocas observaciones cerca del umbral mínimo de 270 minutos, (b) un rol muy especializado que no existe en el resto del dataset, o (c) una temporada atípica.
+      </p>
+      <div>
+        <div style="font-size:11px;color:#5c6370;margin-bottom:6px;font-weight:600">Valores de features destacadas:</div>
+        ${FEATURES.slice(0,12).map(f => `
+          <div class="metric-row">
+            <span class="ml">${FL(f)}</span>
+            <span class="mr">${case3.player.features[f] != null ? case3.player.features[f].toFixed(3) : 'N/A'}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CASO 4 ───────────────────────────────────────────────────────────────── -->
+<div class="case-section" id="case4">
+  <h2>Caso 4 — Cluster de porteros (GK)</h2>
+  <h3>Procedimiento: identificar un grupo visible de puntos cercanos, seleccionarlo con brush, examinar las vistas coordinadas y describir el patrón común.</h3>
+  <div class="case-body wide">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="scatter-wrap" id="sc4"></div>
+      <div class="analysis">
+        <p>
+          <b>Descripción del cluster:</b> Los <em>${case4.player_ids.length} porteros</em> del dataset forman el cluster más compacto y visualmente separado del resto en la proyección UMAP. Esto ocurre porque el vector de características de un portero es <em>radicalmente diferente</em> al de cualquier otro jugador de campo: valores cercanos a 0 en casi todas las métricas ofensivas y en algunas defensivas de campo (pressing, regates, conducciones), y valores elevados en despejes (<em>clearances_per90</em>) y recuperaciones (<em>ball_recoveries_per90</em>).
+        </p>
+        <p>
+          <b>¿Existen puntos intrusos?</b> El cluster de GK está bien delimitado — no hay jugadores de campo dentro de él. Esto valida que la transformación aplicada (log1p + StandardScaler en 23 dimensiones) preserva correctamente la separación semántica entre posiciones.
+        </p>
+        <p>
+          <b>Tarea analítica soportada:</b> Seleccionando el cluster con brush en la Sección 4, el histograma mostrará distribuciones bimodales para métricas como <em>passes_per90</em> (los GK tienen muchos pases), el heatmap mostrará que todos tienen <em>dribbles_per90 ≈ 0</em> y <em>clearances_per90</em> elevados, y las coordenadas paralelas mostrarán el perfil uniforme del grupo.
+        </p>
+      </div>
+    </div>
+    <div class="analysis" style="margin-top:16px">
+      <div style="font-size:11px;color:#5c6370;font-weight:600;margin-bottom:8px">Comparación media GK vs media global (features seleccionadas)</div>
+      <table>
+        <thead><tr>
+          <th>Feature</th>
+          <th>Media GK</th>
+          <th>Media global</th>
+          <th>Diferencia</th>
+        </tr></thead>
+        <tbody>
+          ${['shots_per90','goals_per90','dribbles_per90','passes_per90','clearances_per90','ball_recoveries_per90','pressures_per90','duels_per90'].map(f => {
+            const mg = (gkAll.reduce((s,p)=>s+(p[f]||0),0)/gkAll.length).toFixed(3);
+            const ma = (allData.reduce((s,p)=>s+(p[f]||0),0)/allData.length).toFixed(3);
+            const diff = (parseFloat(mg) - parseFloat(ma));
+            const cls = diff > 0.1 ? 'diff-hi' : diff < -0.1 ? 'diff-lo' : '';
+            return `<tr><td>${FL(f)}</td><td>${mg}</td><td>${ma}</td><td class="${cls}">${diff>0?'+':''}${diff.toFixed(3)}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+  `;
+
+  // Render mini scatters after DOM is ready
+  requestAnimationFrame(() => {
+    // Caso 1: zoom to neighborhood, labels A / B
+    miniScatter('sc1', allData,
+      [case1.player_a.player_id, case1.player_b.player_id],
+      { minPad: 1.8,
+        labels: [case1.player_a.player_name.split(' ').pop()+' (A)',
+                 case1.player_b.player_name.split(' ').pop()+' (B)'] });
+
+    // Caso 2: full view (players at extremes), labels
+    miniScatter('sc2', allData,
+      [case2.player_a.player_id, case2.player_b.player_id],
+      { noZoom: true,
+        labels: ['A: '+case2.player_a.player_name.split(' ').pop()+' (GK)',
+                 'B: '+case2.player_b.player_name.split(' ').pop()+' (LB)'] });
+
+    // Caso 3: zoom to outlier region
+    miniScatter('sc3', allData, [case3.player.player_id],
+      { minPad: 3.5, labels: ['Assou-Ekotto'] });
+
+    // Caso 4: zoom to GK cluster, single centroid label
+    const gkPl = allData.filter(p => case4.player_ids.includes(p.player_id));
+    const cx4 = gkPl.reduce((s,p)=>s+p.x,0)/gkPl.length;
+    const cy4 = gkPl.reduce((s,p)=>s+p.y,0)/gkPl.length;
+    miniScatter('sc4', allData, case4.player_ids,
+      { minPad: 1, padFactor: 1.6,
+        centroidLabel: { x:cx4, y:cy4, text:`GK cluster<br>${case4.player_ids.length} porteros` } });
+  });
+}
+
+// ── Mini scatter — auto-zoom + annotations ────────────────────────────────────
+function miniScatter(divId, allData, highlightIds, opts = {}) {
+  const hl = new Set(highlightIds.map(String));
+  const hlP = allData.filter(p => hl.has(String(p.player_id)));
+
+  // ── Zoom range ──
+  let xrange, yrange;
+  if (!opts.noZoom && hlP.length > 0) {
+    const xs = hlP.map(p => p.x), ys = hlP.map(p => p.y);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const span = Math.max(
+      Math.max(...xs) - Math.min(...xs),
+      Math.max(...ys) - Math.min(...ys), 0.01
+    );
+    const pad = Math.max(span * (opts.padFactor || 5), opts.minPad || 2);
+    xrange = [cx - pad, cx + pad];
+    yrange = [cy - pad, cy + pad];
+  }
+
+  // ── Annotations ──
+  const annotations = (opts.labels || []).map((lbl, i) => {
+    const p = hlP[i]; if (!p) return null;
+    return {
+      x: p.x, y: p.y, text: `<b>${lbl}</b>`, showarrow: true,
+      arrowhead: 3, arrowcolor: '#e5c07b', arrowwidth: 2,
+      font: { color: '#e5c07b', size: 11 },
+      bgcolor: '#2c313a', bordercolor: '#e5c07b55', borderwidth: 1, borderpad: 4,
+      ax: i % 2 === 0 ? -55 : 55, ay: -38,
+    };
+  }).filter(Boolean);
+  if (opts.centroidLabel) {
+    annotations.push({
+      x: opts.centroidLabel.x, y: opts.centroidLabel.y,
+      text: `<b>${opts.centroidLabel.text}</b>`, showarrow: false,
+      font: { color: '#e5c07b', size: 11 },
+      bgcolor: '#2c313a', bordercolor: '#e5c07b55', borderwidth: 1, borderpad: 5,
+    });
+  }
+
+  // ── Circle shapes around highlighted points (skip for large clusters) ──
+  const shapes = hlP.length <= 4 ? hlP.map(p => {
+    const r = xrange ? (xrange[1] - xrange[0]) * 0.06 : 0.3;
+    return {
+      type: 'circle', xref: 'x', yref: 'y',
+      x0: p.x - r, x1: p.x + r, y0: p.y - r, y1: p.y + r,
+      line: { color: '#e5c07b', width: 2 },
+      fillcolor: 'rgba(229,192,123,0.05)',
+    };
+  }) : [];
+
+  // ── Trace ──
+  const isCluster = hlP.length > 10;
+  Plotly.react(divId, [{
+    type: 'scattergl', mode: 'markers',
+    x: allData.map(p => p.x), y: allData.map(p => p.y),
+    marker: {
+      color:   allData.map(p => hl.has(String(p.player_id))
+        ? (isCluster ? '#e5c07b' : '#ffffff')
+        : (POS_COLORS[p.pos_group] || '#aaa')),
+      size:    allData.map(p => hl.has(String(p.player_id))
+        ? (isCluster ? 7 : 16) : 3),
+      opacity: allData.map(p => hl.has(String(p.player_id)) ? 0.95 : 0.05),
+      line: {
+        width: allData.map(p => hl.has(String(p.player_id)) && !isCluster ? 2.5 : 0),
+        color: '#e5c07b',
+      },
+    },
+    text:          allData.map(p => hl.has(String(p.player_id)) ? p.player_name : ''),
+    hovertemplate: '%{text}<extra></extra>',
+    hoverinfo:     allData.map(p => hl.has(String(p.player_id)) ? 'text' : 'skip'),
+  }], {
+    paper_bgcolor: '#21252b', plot_bgcolor: '#282c34', font: { color: '#abb2bf' },
+    xaxis: { gridcolor:'#3e4452', showticklabels:false,
+             title:{text:'UMAP 1',font:{size:9}}, ...(xrange ? {range:xrange} : {}) },
+    yaxis: { gridcolor:'#3e4452', showticklabels:false,
+             title:{text:'UMAP 2',font:{size:9}}, ...(yrange ? {range:yrange} : {}) },
+    annotations, shapes,
+    margin: { t:8, r:8, b:26, l:26 }, showlegend:false, hovermode:'closest', height:310,
+  }, { displayModeBar:false, responsive:true });
+}
+
+init();
+</script>
+</body>
+</html>
